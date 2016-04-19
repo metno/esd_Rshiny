@@ -1,0 +1,23 @@
+---
+title: "AACA-ESD atlas"
+author: "Rasmus Benestad"
+date: "April 19, 2016"
+output: html_document
+---
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+Load esd and the demo that makes use of LatticeKrig and grids the PCA patterns to make EOFs:
+
+```{r}
+library(esd)
+demo(pca2eof,ask=FALSE)
+```
+Convert the downscaled groups of stations with irregular distribution in space to regularly gridded fields
+
+```{r}
+load('git/esd_Rshiny/AACA-ESD-Atlas/dse.aaca.t2m.rcp45.djf.rda')
+t2m.rcp45 <- pca2eof(dse.aaca.t2m.rcp45)
+```
+
+
