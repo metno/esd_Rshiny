@@ -1,0 +1,57 @@
+
+data.import <- function(station,it="annual",FUN="mean",verbose=TRUE) {
+  library(esd)
+  eval(parse(text=paste("data(",station,")",sep="")))
+  eval(parse(text=paste("x <- ",station,sep="")))
+  if(verbose) print(station)
+  if(verbose) print(it)
+  if(verbose) print(FUN)
+  if (it=="annual") {
+    if(verbose) print("annual")
+    y <- annual(x,FUN=FUN,na.rm=TRUE)
+    index(y) <- as.Date(paste(index(y),"-01-01",sep=""))
+  } else if (it %in% c("month","monthly")) {
+    if(verbose) print("monthly")
+    y <- suppressWarnings(aggregate(x,by=as.yearmon,FUN=FUN,na.rm=TRUE))
+  } else {
+    if(verbose) print(paste("seasonal:",it))
+    y1 <- suppressWarnings(aggregate(x,by=as.yearmon,FUN=FUN,na.rm=TRUE))
+    if(verbose) print(paste("subset!",it))
+    y2 <- as.4seasons(x,FUN=FUN,na.rm=TRUE)
+    y <- subset(y2,it=it)
+    index(y) <- as.Date(paste(index(y),"-01-01",sep=""))
+  }
+  return(y)
+}
+
+select.color <- function(it) {
+  colors <- list("annual"="black", "monthly"="grey",
+                 "djf" = "blue", "mam"="green",
+                 "jja" = "red", "son"="yellow")
+  col <- colors[it][[1]]
+  return(col)
+}
+
+library(rdrop2)
+outputDir <- "responses"
+
+saveData <- function(data) {
+  data <- t(data)
+  # Create a unique file name
+  fileName <- sprintf("%s_%s.csv", as.integer(Sys.time()), digest::digest(data))
+  # Write the data to a temporary file locally
+  filePath <- file.path(tempdir(), fileName)
+  write.csv(data, filePath, row.names = FALSE, quote = TRUE)
+  # Upload the file to Dropbox
+  drop_upload(filePath, dest = outputDir)
+}
+
+loadData <- function() {
+  # Read all the files into a list
+  filesInfo <- drop_dir(outputDir)
+  filePaths <- filesInfo$path
+  data <- lapply(filePaths, drop_read_csv, stringsAsFactors = FALSE)
+  # Concatenate all data together into one data.frame
+  data <- do.call(rbind, data)
+  data
+}
