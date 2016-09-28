@@ -1,9 +1,11 @@
+
 library(shiny)
+if (!require("DT")) install.packages('DT')
 library(DT)
-# Load the ggplot2 package which provides
-# the 'mpg' dataset.
 library(esd)
+
 selectrowindex <- 1
+
 # Define a server for the Shiny app
 shinyServer(function(input, output) {
   

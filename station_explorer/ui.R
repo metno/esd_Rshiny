@@ -1,8 +1,11 @@
+
 library(shiny)
+if (!require("DT")) install.packages('DT')
 library(DT)
 # Load the ggplot2 package which provides
 # the 'mpg' dataset.
 library(esd)
+
 selsta <- select.station()
 var.names <- c('Mean temperature','Minimum temperature','Maximum temperature',
                'Precipitation','Sunshine','Lowest minimum temperature','Day of Tl',
@@ -11,7 +14,6 @@ var.names <- c('Mean temperature','Minimum temperature','Maximum temperature',
                'Snow depth','Snowfall')
 
 # Define the overall UI
-
 navbarPage(title = 'Weather station explorer (Beta version)', 
            id = 'x0',
            tabPanel('Browse', 
