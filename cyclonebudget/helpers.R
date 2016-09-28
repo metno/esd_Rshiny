@@ -2,10 +2,15 @@
 prep.imilast(path="~/git/esd_Rshiny/cyclonebudget/data") {
   files <- list.files(path=path,pattern="ERAinterim_1.5_NH_M")
   for(f in files) {
+    print(f)
     x <- read.imilast(path=path,f)
     m <- substr(f,regexpr("_M",f)+1,regexpr("_M",f)+3)
-    eval(parse(text=paste(m," <- as.trajectory(x)",sep="")))
-    eval(parse(text=paste("save(trajectories.",m,",",m,")",sep="")))
+    fname.m <- paste("trajectories.",m,".rda",sep="")
+    if(!file.exists(file.path(path,fname.m))) {
+      print(fname.m)
+      eval(parse(text=paste(m," <- as.trajectory(x,verbose=TRUE)",sep="")))
+      eval(parse(text=paste("save(file='",file.path(path,fname.m),"',",m,")",sep="")))
+    }
   }
 }
 
