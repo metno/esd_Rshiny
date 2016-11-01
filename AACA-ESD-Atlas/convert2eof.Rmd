@@ -17,6 +17,7 @@ Convert the downscaled groups of stations with irregular distribution in space t
 
 ```{r}
 load('git/esd_Rshiny/AACA-ESD-Atlas/dse.aaca.t2m.rcp45.djf.rda')
+x <- subset(dse.aaca.t2m,ip=1:5)
 t2m.rcp45 <- pca2eof(dse.aaca.t2m.rcp45)
 ```
 
