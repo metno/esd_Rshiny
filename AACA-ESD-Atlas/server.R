@@ -21,7 +21,24 @@ load('data/dse.aaca.t2m.rcp45.jja.eof.rda')
 Z4$jja <- Z
 load('data/dse.aaca.t2m.rcp45.son.eof.rda')
 Z4$son <- Z
-iloc <- 1
+
+load('data/dse.aaca.t2m.rcp26.djf.eof.rda')
+Z4$djf <- Z
+load('data/dse.aaca.t2m.rcp26.mam.eof.rda')
+Z4$mam <- Z
+load('data/dse.aaca.t2m.rcp26.jja.eof.rda')
+Z4$jja <- Z
+load('data/dse.aaca.t2m.rcp26.son.eof.rda')
+Z4$son <- Z
+
+load('data/dse.aaca.t2m.rcp85.djf.eof.rda')
+Z4$djf <- Z
+load('data/dse.aaca.t2m.rcp85.mam.eof.rda')
+Z4$mam <- Z
+load('data/dse.aaca.t2m.rcp85.jja.eof.rda')
+Z4$jja <- Z
+load('data/dse.aaca.t2m.rcp85.son.eof.rda')
+Z4$son <- Z
 
 
 shinyServer(function(input, output) {
@@ -133,8 +150,10 @@ shinyServer(function(input, output) {
     }
     })
   
+  ## Unfinished!
   output$plot.warmcolddays <- renderPlot({plot(rnorm(100))})
-    
+  
+  ## Unfinished!  
   output$map.quality <- renderPlot({ 
     season <- switch(tolower(as.character(input$season6)),
                      'winter'=1,'spring'=2,'summer'=3,'autumn'=4)

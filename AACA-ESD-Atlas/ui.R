@@ -129,7 +129,7 @@ navbarPage("AACA Barents region climate atlas",
              column(2, 
                     numericInput("threshold4", "Threshold", 0.0, min = -50.0, max = 50.0)),
              plotOutput("plot.prob")),
-tabPanel("Warm/cold days", 
+tabPanel("Warm/cold days",  ## Unfinished!
          column(2,
                 selectInput("location5", 
                             label = "Location",
@@ -147,7 +147,7 @@ tabPanel("Warm/cold days",
                             selected = "Winter")),
          
          plotOutput("plot.warmcolddays")),
-    tabPanel("Quality", 
+    tabPanel("Quality",  ## Unfinished!
              column(2,
                     selectInput("param6", 
                                 label = "Element",
@@ -173,7 +173,7 @@ tabPanel("Warm/cold days",
                                 min = 65, max = 85, value = c(65, 85))),
             plotOutput("map.quality")
     ),
-    tabPanel("Settings", 
+    tabPanel("Settings", ## Unfinished! Aslo include settings for maps: text
              column(2,
                     selectInput("aspect", 
                                 label = "Aspect",
@@ -195,7 +195,7 @@ tabPanel("Warm/cold days",
              
              
              tableOutput("table")),
-    tabPanel("Usage statistics", 
+    tabPanel("Usage statistics",  ## Unfinished!
              column(2,
                     checkboxGroupInput("user.stats", 
                                        label = "Statistics",

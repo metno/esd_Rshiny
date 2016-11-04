@@ -13,12 +13,21 @@ Load esd and the demo that makes use of LatticeKrig and grids the PCA patterns t
 library(esd)
 demo(pca2eof,ask=FALSE)
 ```
+
 Convert the downscaled groups of stations with irregular distribution in space to regularly gridded fields
 
 ```{r}
-load('git/esd_Rshiny/AACA-ESD-Atlas/dse.aaca.t2m.rcp45.djf.rda')
-x <- subset(dse.aaca.t2m,ip=1:5)
-t2m.rcp45 <- pca2eof(dse.aaca.t2m.rcp45)
+setwd('esd_Rshiny/AACA-ESD-Atlas/data/')
+gridlist <- list.files(pattern='.rda')
+gridlist <- gridlist[-grep('eof',gridlist)]
+for (fname in gridlist) {
+  load(fname)
+  eval(parse(text=paste('z <-',substr(fname,1,nchar(fname)-8))))
+  x <- subset(z,ip=1:5)
+  Z <- as.eof.dsensemble.pca(x)
+  ofname <- paste(substr(fname,1,nchar(fname)-4),'.eof.rda',sep='')
+  save(Z,file=ofname)
+}
 ```
 
 
