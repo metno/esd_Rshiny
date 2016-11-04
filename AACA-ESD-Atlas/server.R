@@ -11,34 +11,33 @@ if ('RgoogleMaps' %in% installed.packages()) library(RgoogleMaps)
 ## Preparations - grid the station data and reduce the size of the data by keeping only
 ## the most important PCA modes.
 
-season <- 1
 Z4 <- list()
 load('data/dse.aaca.t2m.rcp45.djf.eof.rda')
-Z4$djf <- Z
+Z4$djf.45 <- Z
 load('data/dse.aaca.t2m.rcp45.mam.eof.rda')
-Z4$mam <- Z
+Z4$mam.45 <- Z
 load('data/dse.aaca.t2m.rcp45.jja.eof.rda')
-Z4$jja <- Z
+Z4$jja.45 <- Z
 load('data/dse.aaca.t2m.rcp45.son.eof.rda')
-Z4$son <- Z
+Z4$son.45 <- Z
 
 load('data/dse.aaca.t2m.rcp26.djf.eof.rda')
-Z4$djf <- Z
+Z4$djf.26 <- Z
 load('data/dse.aaca.t2m.rcp26.mam.eof.rda')
-Z4$mam <- Z
+Z4$mam.26 <- Z
 load('data/dse.aaca.t2m.rcp26.jja.eof.rda')
-Z4$jja <- Z
+Z4$jja.26 <- Z
 load('data/dse.aaca.t2m.rcp26.son.eof.rda')
-Z4$son <- Z
+Z4$son.26 <- Z
 
 load('data/dse.aaca.t2m.rcp85.djf.eof.rda')
-Z4$djf <- Z
+Z4$djf.85 <- Z
 load('data/dse.aaca.t2m.rcp85.mam.eof.rda')
-Z4$mam <- Z
+Z4$mam.85 <- Z
 load('data/dse.aaca.t2m.rcp85.jja.eof.rda')
-Z4$jja <- Z
+Z4$jja.85 <- Z
 load('data/dse.aaca.t2m.rcp85.son.eof.rda')
-Z4$son <- Z
+Z4$son.85 <- Z
 
 
 shinyServer(function(input, output) {

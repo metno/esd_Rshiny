@@ -5,6 +5,9 @@ library(esd)
 # Show a tabset that includes a plot, summary, and
 # table view of the generated distribution
 
+Z4 <- list()
+load('data/dse.aaca.t2m.rcp45.djf.eof.rda')
+Z4$djf.45 <- Z
 locs <<- loc(Z4[[1]]$pca)
 gcmnames <<- names(Z4[[1]])[-c(1,2,length(Z4[[1]]))]
 
