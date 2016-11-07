@@ -39,15 +39,21 @@ Z4$jja.85 <- Z
 load('data/dse.aaca.t2m.rcp85.son.eof.rda')
 Z4$son.85 <- Z
 
+## Estimate the probabilities (%) for observation within the population of downscaled results
+dsescore <- function(x) {
+  d <- diagnose(x,plot=FALSE)
+  Y <- -round(200 * (0.5 - pbinom(d$outside, size = d$N, prob = 0.1)), 
+              2)
+  X <- -round(200 * (0.5 - pnorm(d$deltaobs, mean = mean(d$deltagcm), 
+                                 sd = sd(d$deltagcm))), 2)
+  return(c(Y,X,lon(x),lat(x)))
+}
+
+iview <- 0
 
 shinyServer(function(input, output) {
-  
-  ## Reactive settings for the menu
-#  Li <- reactive({((1:3)[is.element(c('rcp4.5','rcp2.6','rcp8.5'),tolower(input$rcp))-1]*4) +
-#                   (1:4)[is.element(c('winter','spring','summer','autumn'),tolower(input$season))]})
-#  Gcmnames <<- reactive({names(Z4[[Li()]])[-c(1,2,length(Z4[[Li()]]))]})
-#  Locs <<- reactive({loc(Z4[[Li()]]$pca)})
-  
+  iview <- iview + 1
+
   ## Show map of gridded temperature
   output$maps <- renderPlot({ 
     it <- range(as.numeric(input$dates1))
@@ -58,9 +64,9 @@ shinyServer(function(input, output) {
                   'rcp4.5'=1,'rcp2.6'=2,'rcp8.5'=3)
     li <- (rcp-1)*4+season
     gcnames <- names(Z4[[li]])
-    im <- is.element(input$im,gcmnames)
+    im <- is.element(gcmnames,input$im)
     main <- paste(input$param1,season,input$rcp1,li,it[1],it[2],is$lon1[1],is$lon1[2],is$lat1[1],is$lat1[2],sum(im))
-    map(Z4[[li]],it=it,is=is,main=main,new=FALSE)
+    map(Z4[[li]],it=it,is=is,im=im,main=main,new=FALSE)
     }, height=function(){600})
    
   ## Plot individual station
@@ -76,7 +82,7 @@ shinyServer(function(input, output) {
     class(zz) <- c('dsensemble','pca','list')
     ## Reduce the matrix size and pick one station before the recovery of the original format
     zz$pca <- subset(zz$pca,is=is)
-    im <- is.element(input$im,gcmnames)
+    im <- is.element(gcmnames,input$im)
     z <- as.station(zz,im=im)
     main <- paste(is,li,sum(im),sum(is.finite(coredata(z))),index(z)[1],paste(class(z),collapse='-'))
     plot(z,main=main,new=FALSE)
@@ -92,7 +98,7 @@ shinyServer(function(input, output) {
                   'rcp4.5'=1,'rcp2.6'=2,'rcp8.5'=3)
     li <- (rcp-1)*4+season
     gcnames <- names(Z4[[li]])
-    im <- is.element(input$im,gcmnames)
+    im <- is.element(gcmnames,input$im)
     zz <- Z4[[li]]; zz$eof <- NULL;
     class(zz) <- c('dsensemble','pca','season','list')
     lons <- lon(zz$pca); lats <- lat(zz$pca); alts <- alt(zz$pca)
@@ -118,7 +124,7 @@ shinyServer(function(input, output) {
                   'rcp4.5'=1,'rcp2.6'=2,'rcp8.5'=3)
     li <- (rcp-1)*4+season
     gcnames <- names(Z4[[li]])
-    im <- is.element(input$im,gcmnames)
+    im <- is.element(gcmnames,input$im)
     is <- (1:length(locs))[is.element(locs,as.character(input$location4))]
     zz <- Z4[[li]]; zz$eof <- NULL;
     class(zz) <- c('dsensemble','pca','season','list')
@@ -160,12 +166,49 @@ shinyServer(function(input, output) {
                   'rcp4.5'=1,'rcp2.6'=2,'rcp8.5'=3)
     li <- (rcp-1)*4+season
     is <- list(lon=as.numeric(input$lon6),lat=as.numeric(input$lat6))
-    y <- Z4[[li]]
-    map(subset(y$pca,is=is),new=FALSE)},
-    height=function(){600})
+    im <- is.element(gcmnames,input$im)
+    zz <- Z4[[li]]
+    class(zz) <- c('dsensemble','pca','list')
+    ## Reduce the matrix size and pick one station before the recovery of the original format
+    im <- is.element(gcmnames,input$im)
+    zz <- subset(zz,is=is,im=im)
+    z <- as.station(zz)
+    plot(lon(zz$pca),lat(zz$pca),xlab='',ylab='')
+    grid()
+    data(geoborders)
+    lines(geoborders,col='grey')
+    diag <- unlist(lapply(z,function(x) dsescore(x)))
+    dim(diag) <- c(4,length(z))
+    col.var <- rgb(sqrt(abs(diag[1,]/100)),sqrt(1-abs(diag[1,]/100)),0)
+    col.trend <- rgb(sqrt(abs(diag[2,]/100)),sqrt(1-abs(diag[2,]/100)),0)
+    points(diag[3,],diag[4,],pch=19,cex=2.0,col=col.var)
+    points(diag[3,],diag[4,],pch=19,cex=1.2,col=col.trend)
+    
+    },height=function(){600})
   
-  output$idtext <- renderText({
-    txt <- paste(input$param,input$rcp,input$season,input$scenario,input$dates)
+  output$plot1model <- renderPlot({ 
+    it <- range(as.numeric(input$dates7))
+    is <- list(lon=as.numeric(input$lon7),lat=as.numeric(input$lat7))
+    season <- switch(tolower(as.character(input$season7)),
+                     'winter'=1,'spring'=2,'summer'=3,'autumn'=4)
+    rcp <- switch(tolower(as.character(input$rcp7)),
+                  'rcp4.5'=1,'rcp2.6'=2,'rcp8.5'=3)
+    li <- (rcp-1)*4+season
+    gcnames <- names(Z4[[li]])
+    im1 <- is.element(gcmnames,input$im7)
+    im <-  !is.element(gcmnames,input$im7) & is.element(gcmnames,input$im) 
+    z1 <- subset(Z4[[li]],im=im1,it=ti,is=is)
+    zz <- subset(Z4[[li]],im=im,it=ti,is=is)
+    
+    main <- paste(input$param1,season,input$rcp1,li,it[1],it[2],is$lon1[1],is$lon1[2],is$lat1[1],is$lat1[2],sum(im))
+    y1 <- map(z1,plot=FALSE)
+    yy <- map(zz,plot=FALSE)
+    coredata(y1) <- coredata(y1) - coredata(yy)
+    map(y1,main=main)
+  }, height=function(){600})
+  
+  output$use.stats <- renderText({
+    txt <- paste(iview,"actions")
   })
   
 })
