@@ -238,6 +238,9 @@ tabPanel("Single model",  ## Unfinished!
                 "region. They are also limited by the degree which the global climate models capture the large-scale",
                 "conditions and the ability of the downscaling to capture the dependency between large and local scales.",
                 "The results presented here are from the study presented in",
-                a(" Benestad et al. (2016)", href="http://goo.gl/u3IK4y"))
+                a(" Benestad et al. (2016)", href="http://goo.gl/u3IK4y"),
+                h2("Source code"),
+                "The source code behind this R-shiny app is available from",
+                a("GitHub",href="https://github.com/metno/esd_Rshiny/tree/master/AACA-ESD-Atlas"))
          )
 )
