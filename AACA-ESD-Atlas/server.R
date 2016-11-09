@@ -6,7 +6,8 @@
 
 library(shiny)
 library(esd)
-if ('RgoogleMaps' %in% installed.packages()) library(RgoogleMaps)
+#if ('RgoogleMaps' %in% installed.packages()) install.packages('RgoogleMaps')
+library(RgoogleMaps)
 
 ## Preparations - grid the station data and reduce the size of the data by keeping only
 ## the most important PCA modes.
@@ -39,21 +40,38 @@ Z4$jja.85 <- Z
 load('data/dse.aaca.t2m.rcp85.son.eof.rda')
 Z4$son.85 <- Z
 
-## Estimate the probabilities (%) for observation within the population of downscaled results
-dsescore <- function(x) {
-  d <- diagnose(x,plot=FALSE)
-  Y <- -round(200 * (0.5 - pbinom(d$outside, size = d$N, prob = 0.1)), 
-              2)
-  X <- -round(200 * (0.5 - pnorm(d$deltaobs, mean = mean(d$deltagcm), 
-                                 sd = sd(d$deltagcm))), 2)
-  return(c(Y,X,lon(x),lat(x)))
+## Estimate the probabilities for trend in observation is within the population trends based on of downscaled results
+## zoo objects are slow so extract the core data
+trendscore <- function(x) {
+  it.X <- year(x) 
+  X <- coredata(x)
+  it.y <- year(attr(x,'station'))
+  y <- coredata(attr(x,'station'))
+  X <- X[is.element(it.X,it.y),]
+  ty <- trend.coef(y)
+  tX <- apply(X,2,FUN='trend.coef')
+  score <- pnorm(ty,mean=mean(tX),sd=sd(tX))
+  return(c(score,lon(x),lat(x)))
+}
+
+## Estimate the probabilities for observed values are within the 90% conf. int. of population of downscaled results
+## zoo objects are slow so extract the core data
+varscore <- function(x) {
+  it.X <- year(x) 
+  X <- coredata(x)
+  it.y <- year(attr(x,'station'))
+  y <- coredata(attr(x,'station'))
+  X <- X[is.element(it.X,it.y),]
+  nX <- sum(apply(cbind(y,X),1,FUN=function(x) x[1] < quantile(x[-1],probs=0.05) | x[1] > quantile(x[-1],probs=0.95)))
+  score <- pbinom(nX,size=length(y),prob=0.1)
+  return(c(score,lon(x),lat(x)))
 }
 
 iview <- 0
 
 shinyServer(function(input, output) {
-  iview <- iview + 1
-
+  countview <- reactiveValues(i = 1)
+  
   ## Show map of gridded temperature
   output$maps <- renderPlot({ 
     it <- range(as.numeric(input$dates1))
@@ -62,11 +80,27 @@ shinyServer(function(input, output) {
                      'winter'=1,'spring'=2,'summer'=3,'autumn'=4)
     rcp <- switch(tolower(as.character(input$rcp1)),
                   'rcp4.5'=1,'rcp2.6'=2,'rcp8.5'=3)
+    FUN <- switch(tolower(as.character(input$aspect)),
+                  "mean value"="mean", "change"="change","trend"="trend")
+    
     li <- (rcp-1)*4+season
-    gcnames <- names(Z4[[li]])
+    gcnames <- names(Z4[[li]])[-c(1,2,length(Z4[[1]]))]
     im <- is.element(gcmnames,input$im)
-    main <- paste(input$param1,season,input$rcp1,li,it[1],it[2],is$lon1[1],is$lon1[2],is$lat1[1],is$lat1[2],sum(im))
-    map(Z4[[li]],it=it,is=is,im=im,main=main,new=FALSE)
+    
+    if (FUN=="trend") it[2] <- max(c(it[2],it[1]+30))
+    main <- paste(FUN,input$param1,season,input$rcp1,li,it[1],it[2],is$lon1[1],is$lon1[2],is$lat1[1],is$lat1[2],sum(im))
+    
+    y <- map(Z4[[li]],it=it,is=is,im=im,plot=FALSE)
+    
+    if (FUN=="change") {
+      FUN <- "mean"
+      it0 <- range(as.numeric(input$baseline))
+      it0 <- c(1961,1990)
+      y0 <- map(Z4[[li]],it=it0,is=is,im=im,plot=FALSE)
+      coredata(y) <- t(coredata(t(y)) - apply(coredata(t(y0)),1,FUN='mean'))
+    }
+    
+    map(y,main=main,FUN=FUN,new=FALSE)
     }, height=function(){600})
    
   ## Plot individual station
@@ -77,7 +111,7 @@ shinyServer(function(input, output) {
                   'rcp4.5'=1,'rcp2.6'=2,'rcp8.5'=3)
     li <- (rcp-1)*4+season
     is <- (1:length(locs))[is.element(locs,as.character(input$location2))]
-    gcnames <- names(Z4[[li]])
+    gcnames <- names(Z4[[li]])[-c(1,2,length(Z4[[1]]))]
     zz <- Z4[[li]]; zz$eof <- NULL;
     class(zz) <- c('dsensemble','pca','list')
     ## Reduce the matrix size and pick one station before the recovery of the original format
@@ -85,7 +119,7 @@ shinyServer(function(input, output) {
     im <- is.element(gcmnames,input$im)
     z <- as.station(zz,im=im)
     main <- paste(is,li,sum(im),sum(is.finite(coredata(z))),index(z)[1],paste(class(z),collapse='-'))
-    plot(z,main=main,new=FALSE)
+    plot(z,main=main,target.show=FALSE,new=FALSE)
     #plot(rnorm(100),main=main)
   }, height=function(){600})
   
@@ -97,7 +131,7 @@ shinyServer(function(input, output) {
     rcp <- switch(tolower(as.character(input$rcp3)),
                   'rcp4.5'=1,'rcp2.6'=2,'rcp8.5'=3)
     li <- (rcp-1)*4+season
-    gcnames <- names(Z4[[li]])
+    gcnames <- names(Z4[[li]])[-c(1,2,length(Z4[[1]]))]
     im <- is.element(gcmnames,input$im)
     zz <- Z4[[li]]; zz$eof <- NULL;
     class(zz) <- c('dsensemble','pca','season','list')
@@ -123,7 +157,7 @@ shinyServer(function(input, output) {
     rcp <- switch(tolower(as.character(input$rcp4)),
                   'rcp4.5'=1,'rcp2.6'=2,'rcp8.5'=3)
     li <- (rcp-1)*4+season
-    gcnames <- names(Z4[[li]])
+    gcnames <- names(Z4[[li]])[-c(1,2,length(Z4[[1]]))]
     im <- is.element(gcmnames,input$im)
     is <- (1:length(locs))[is.element(locs,as.character(input$location4))]
     zz <- Z4[[li]]; zz$eof <- NULL;
@@ -173,19 +207,32 @@ shinyServer(function(input, output) {
     im <- is.element(gcmnames,input$im)
     zz <- subset(zz,is=is,im=im)
     z <- as.station(zz)
-    plot(lon(zz$pca),lat(zz$pca),xlab='',ylab='')
+    main <- paste('Quality of',input$quality6,'for',input$season6,input$param6,'and',sum(im),input$rcp6,'model runs')
+    plot(lon(zz$pca),lat(zz$pca),xlab='',ylab='',main=main,lwd=2,cex=2,pch=19,col='grey80')
     grid()
     data(geoborders)
     lines(geoborders,col='grey')
-    diag <- unlist(lapply(z,function(x) dsescore(x)))
-    dim(diag) <- c(4,length(z))
-    col.var <- rgb(sqrt(abs(diag[1,]/100)),sqrt(1-abs(diag[1,]/100)),0)
-    col.trend <- rgb(sqrt(abs(diag[2,]/100)),sqrt(1-abs(diag[2,]/100)),0)
-    points(diag[3,],diag[4,],pch=19,cex=2.0,col=col.var)
-    points(diag[3,],diag[4,],pch=19,cex=1.2,col=col.trend)
-    
+    if (as.character(input$quality6)=="trend") 
+      score<- unlist(lapply(z,trendscore)) else
+    if (as.character(input$quality6)=="inter-annual range") 
+      score<- unlist(lapply(z,varscore))  
+    dim(score) <- c(3,length(z))
+    col <- rep(rgb(0,0.5,0.5),length(z)); pch <- rep(19,length(z))
+    q2 <- score[1,] < 0.1 | score[1,] > 0.9
+    q3 <- score[1,] < 0.05 | score[1,] > 0.95
+    col[q2] <- rgb(0.5,0.5,0); pch[q2] <- 15
+    col[q3] <- rgb(1,0,0);   pch[q3] <- 17
+    points(score[2,],score[3,],pch=pch,cex=1.5,col=col)
+    par0 <- par()
+    par(new=TRUE,fig=c(0.05,0.25,0.9,1),mar=rep(1,4),xaxt='n',yaxt='n')
+    image(cbind(1:3,1:3),col=c(rgb(0,0.5,0.5),rgb(0.5,0.5,0),rgb(1,0,0)))
+    text(0,1,'[10,90]',col='white',cex=0.8,pos=1)
+    text(0.50,1,'[05,95]',col='white',cex=0.8,pos=1)
+    text(1,1,'outside',col='white',cex=0.8,pos=1)
+    par(par0)
     },height=function(){600})
   
+  ## Show thedifference between one selected model and the mean of the rest of the ensemble.
   output$plot1model <- renderPlot({ 
     it <- range(as.numeric(input$dates7))
     is <- list(lon=as.numeric(input$lon7),lat=as.numeric(input$lat7))
@@ -194,21 +241,24 @@ shinyServer(function(input, output) {
     rcp <- switch(tolower(as.character(input$rcp7)),
                   'rcp4.5'=1,'rcp2.6'=2,'rcp8.5'=3)
     li <- (rcp-1)*4+season
-    gcnames <- names(Z4[[li]])
+    gcnames <- names(Z4[[li]])[-c(1,2,length(Z4[[1]]))]
     im1 <- is.element(gcmnames,input$im7)
     im <-  !is.element(gcmnames,input$im7) & is.element(gcmnames,input$im) 
-    z1 <- subset(Z4[[li]],im=im1,it=ti,is=is)
-    zz <- subset(Z4[[li]],im=im,it=ti,is=is)
     
-    main <- paste(input$param1,season,input$rcp1,li,it[1],it[2],is$lon1[1],is$lon1[2],is$lat1[1],is$lat1[2],sum(im))
+    z1 <- subset(Z4[[li]],im=im1,it=it,is=is)
+    zz <- subset(Z4[[li]],im=im,it=it,is=is)
+    
     y1 <- map(z1,plot=FALSE)
     yy <- map(zz,plot=FALSE)
     coredata(y1) <- coredata(y1) - coredata(yy)
-    map(y1,main=main)
+    main <- paste(gcmnames[im1],' - ensemble mean (number of runs=',sum(im),') ',
+                  season,'/',input$rcp1,': ',it[1],'-',it[2],sep='')
+    map(y1,main=main,new=FALSE)
+    #plot(rnorm(100),main=main)
   }, height=function(){600})
   
   output$use.stats <- renderText({
-    txt <- paste(iview,"actions")
+    txt <- paste(countview$i,"actions")
   })
   
 })
