@@ -235,7 +235,15 @@ tabPanel("Quality",  ## Unfinished!
              tableOutput("table")),
 
     tabPanel("Usage statistics",  ## Unfinished!
-             textOutput("use.stats")),
+             column(12,
+                    h1("Usage statistics"),
+                    h2("Unfinished"),
+                    "Statistics over which type of information is most sought and counter for number of visits.",
+                    "Such information may be used to help others see what type of information is used the most",
+                    "and can be used as guidance for further development and improvement of tools like this.",
+                    "This page can also include a feedback/comment option for user response.",
+                    "Google analytics may also offer ways to understand how the information is being used and",
+                    "be used for future improvements.")),
     tabPanel("Disclaimer & info", 
          column(12,
                 h1("Disclaimer"),
