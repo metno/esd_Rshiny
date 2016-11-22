@@ -3,8 +3,8 @@
 library(esd)
 demo(pca2eof,ask=FALSE)
 
-setwd('data')
-files <- list.files(pattern='dse.kss')
+files <- list.files(pattern='dse.kss',path='data',full.names = TRUE)
+files <- files[nchar(files)==29]
 print(files)
 
 n <- length(files)
@@ -12,17 +12,12 @@ n <- length(files)
 for (i in 1:n) {
   print(files[i])
   load(files[i])
-  if (nchar(files[i])==27) nl <- 11 else nl <- 8
-  #eval(parse(text=paste('z <- dse.aaca.',
-  #               substr(files[i],9,nchar(files[i])-nl),sep='')))
-  z <- dse.aaca.t2m.rcp45
-  print('z')
-  z <- subset(z,ip=1:4)
+  if (dim(Z$pca)[2] > 4) z <- subset(Z,ip=1:4) else z <- Z
   print('subset')
   Z <- as.eof.dsensemble.pca(z)
   print('as eof')
   eoffile <- paste(substr(files[i],1,nchar(files[i])-4),'.eof.rda',sep='')
   print(eoffile)
   save(Z,file=eoffile)
+  file.remove(files[i])
 }
-setwd('..')
