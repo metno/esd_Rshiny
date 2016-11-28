@@ -40,6 +40,8 @@ Z4$jja.85 <- Z
 load('data/dse.aaca.t2m.rcp85.son.eof.rda')
 Z4$son.85 <- Z
 
+load('data/t2m.aaca.rda')
+
 ## Estimate the probabilities for trend in observation is within the population trends based on of downscaled results
 ## zoo objects are slow so extract the core data
 trendscore <- function(x) {
@@ -256,6 +258,28 @@ shinyServer(function(input, output) {
     map(y1,main=main,new=FALSE)
     #plot(rnorm(100),main=main)
   }, height=function(){600})
+  
+  output$plotndays <- renderPlot({ 
+    season <- switch(tolower(as.character(input$direction8)),
+                     "cold winter days"=1,"hot summer days"=3)
+    rcp <- switch(tolower(as.character(input$rcp8)),
+                  'rcp4.5'=1,'rcp2.6'=2,'rcp8.5'=3)
+    li <- (rcp-1)*4+season
+    gcnames <- names(Z4[[li]])[-c(1,2,length(Z4[[1]]))]
+    im <- is.element(gcmnames,input$im)
+    is <- (1:length(locs))[is.element(locs,as.character(input$location8))]
+    zz <- Z4[[li]]; zz$eof <- NULL;
+    class(zz) <- c('dsensemble','pca','season','list')
+    lons <- lon(zz$pca); lats <- lat(zz$pca); alts <- alt(zz$pca)
+    zz <- subset(zz,im=im,is=is)
+    z <- as.station(zz)
+    if (as.character(input$direction8) == "Hot summer days") {
+      nds <- hotsummerdays(subset(t2m,is=is),dse=z,it=c('djf','mam','jja','son')[season],threshold=input$threshold8,plot=FALSE)
+    } else {
+      nds <- coldwinterdays(subset(t2m,is=is),dse=z,it=c('djf','mam','jja','son')[season],threshold=input$threshold8,plot=FALSE)
+    }
+    plot(nds)
+  })
   
   output$use.stats <- renderText({
     txt <- paste(countview$i,"actions")
