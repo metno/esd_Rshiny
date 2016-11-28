@@ -37,10 +37,12 @@ downscale <- function(Y,predictor,it='djf',param='t2m',FUN='mean',FUNX='mean',
   #print(paste(nmiss,'% missing',sep=''))
   
   ## Fill missing data using PCA-based regression
+  if (verbose) print('pcafill')
   Z <- pcafill(Y4)
   ## Negative precipitation is impossible - clip to zero
-  if (is.precip(Z)) Z[Z<0]<- 0
-  
+  if (is.precip(Z)) coredata(Z)[Z<0]<- 0
+
+  if (verbose) print('pca')
   pca <- PCA(Z,n=n)
   if (plot) plot(pca)
   

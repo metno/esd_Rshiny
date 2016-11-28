@@ -5,6 +5,8 @@ args=commandArgs(trailingOnly=TRUE)
 print('--- R-job for downscaling Nordic temperatures for KSS ---')
 print(args)
 
+#library(devtools)
+#install.packages('esd',repos=NULL)
 library(esd)
 
 ## Function definitions:
@@ -15,13 +17,16 @@ downscale <- function(Y,predictor,it='djf',param='t2m',FUN='mean',FUNX='mean',
                       pattern='tas_Amon_ens',
                       rel.cord=FALSE,select=NULL) {
   
-  print('downscale')
+  if (verbose) print(paste('downscale',param,it,FUN,FUNX))
   
   ## Use a time and space window:  
+  if (verbose) print(paste('subset',paste(period,collapse='-')))
   Y <- subset(Y,it=period)
   
   ## Estimate seasonal means & weed out stations with little data
+  if (verbose) print('season')
   Y4 <- subset(as.4seasons(Y,FUN=FUN),it=it)
+  if (verbose) print('weed out missing data')
   ok <- apply(coredata(Y4),1,nv)
   Y4 <- subset(Y4,it=ok>0)
   nok <- apply(coredata(Y4),2,nv)
@@ -35,10 +40,12 @@ downscale <- function(Y,predictor,it='djf',param='t2m',FUN='mean',FUNX='mean',
   #print(paste(nmiss,'% missing',sep=''))
   
   ## Fill missing data using PCA-based regression
+  if (verbose) print('pcafill')
   Z <- pcafill(Y4)
   ## Negative precipitation is impossible - clip to zero
-  if (is.precip(Z)) Z[Z<0]<- 0
+  if (is.precip(Z)) coredata(Z)[Z<0]<- 0
   
+  if (verbose) print('pca')
   pca <- PCA(Z,n=n)
   if (plot) plot(pca)
   
