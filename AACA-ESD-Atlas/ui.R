@@ -186,6 +186,8 @@ tabPanel("Warm/cold days",  ## Unfinished!
                             selected = "Cold winter days")),
          column(2, 
                 numericInput("threshold8", "Threshold", 0.0, min = -50.0, max = 50.0)),
+         column(4,h4('Reference'),'Supporting material in ',
+                a("Hansen et al. (2014).", href="goo.gl/5fvX3P")),
          
          plotOutput("plotndays")),
 tabPanel("Quality",  ## Unfinished!
