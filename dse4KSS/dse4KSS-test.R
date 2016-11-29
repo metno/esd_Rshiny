@@ -15,7 +15,7 @@ downscale <- function(Y,predictor,it='djf',param='t2m',FUN='mean',FUNX='mean',
                       period=c(1950,2015),plot=FALSE,rcp='rcp45',verbose=FALSE,
                       lon=c(-20,40),lat=c(50,80),ip=1:2,n=3,
                       pattern='tas_Amon_ens',
-                      rel.cord=FALSE,select=NULL) {
+                      rel.cord=FALSE,select=NULL,test=FALSE) {
   
   print('downscale')
   
@@ -50,7 +50,8 @@ downscale <- function(Y,predictor,it='djf',param='t2m',FUN='mean',FUNX='mean',
   print('DSensemble')
   dse.pca <- DSensemble(pca,predictor=predictor,FUNX=FUNX,verbose=verbose,
                         biascorrect=TRUE,rcp=rcp,ip=ip,select=select,
-                        nmin=1,pattern=pattern,lon=lon,lat=lat,rel.cord=rel.cord,it=it,plot=plot)
+                        nmin=1,pattern=pattern,lon=lon,lat=lat,rel.cord=rel.cord,it=it,
+                        plot=plot,test=test)
   
   attr(dse.pca,'N.missing') <- nmiss
   invisible(dse.pca)
@@ -64,6 +65,8 @@ param <- args[1]  # parameter
 rcp <- args[2]
 it <- args[3]
 landmask <- FALSE
+select <- NULL
+test <- TRUE
 
 if (param=='t2m') {
   reanalysis <- 'air.mon.mean.nc'
@@ -100,7 +103,7 @@ if (param=='fw') {
   n=5
 }
 
-outdir <- '/lustre/storeB/users/rasmusb/dse4KSS/'
+outdir <- '.'
 if (!file.exists(outdir)) dir.create(outdir)
 
 verbose=TRUE
@@ -138,7 +141,7 @@ print(paste('Generating dse.kss.',param,'.',rcp,'.',it,'.rda',sep=''))
   ## Carry out the downscaling:
 if (!file.exists(paste('dse.kss.t2m.',rcp,',.',it,'.rda',sep=''))) {
     Z <- downscale(Y,predictor,it,param,rcp=rcp,FUN=FUN,FUNX=FUNX,
-                   lon=lon,lat=lat,n=n,verbose=verbose)
+                   lon=lon,lat=lat,n=n,verbose=verbose,select=select,test=test)
     save(file=paste(outdir,'dse.kss.',param,'.',rcp,'.',it,'.rda',sep=''),Z)
 }
   
