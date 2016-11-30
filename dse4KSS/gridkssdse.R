@@ -4,7 +4,7 @@ library(esd)
 demo(pca2eof,ask=FALSE)
 
 files <- list.files(pattern='dse.kss',path='data',full.names = TRUE)
-files <- files[nchar(files)==29]
+files <- files[(nchar(files)==29) | (nchar(files)==30)]
 print(files)
 
 n <- length(files)
