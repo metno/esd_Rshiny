@@ -1,7 +1,7 @@
 ## Test the downscaling for wet-day frequency
 library(esd)
 
-param <- 'fw'
+param <- 'mu'
 i <- 7
 ip <- 2
 
