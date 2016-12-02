@@ -1,11 +1,11 @@
 ## Script to asssess and evaluate the calibration of the ESD models
 ## Rasmus Benestad
 
-param <- 'fw'
-it <- 'son'
+param <- 'mu'
+it <- 'jja'
 period <- c(1950,2015)
 n <- 3
-ip <- 1:2
+ip <- 1:3
 landmask <- FALSE
 
 library(esd)
