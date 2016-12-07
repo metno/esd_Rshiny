@@ -5,12 +5,15 @@ param <- 'mu'
 i <- 7
 ip <- 2
 
-files <- list.files(pattern='dse.kss',path='data',full.names=TRUE)
-files <- files[grep(param,files)]
+files <- list.files(pattern='dse.kss',path='~/Rshiny/dse4KSS/data',full.names=TRUE)
+files <- files[grep(param,files)]; files <- files[grep('eof',files)];
+#print(files)
 print(files[i])
 
 load(files[i])
 pca <- zoo(Z$pca[,ip])
+print(attr(Z,'predictor_file')) 
+print(attr(Z,'predictor_lon')); print(attr(Z,'predictor_lat'))
 print(Z$info)
 Z$info <- NULL; Z$pca <- NULL; Z$eof <- NULL
 x <- unlist(lapply(Z,function(x) coredata(x)[,ip]))
