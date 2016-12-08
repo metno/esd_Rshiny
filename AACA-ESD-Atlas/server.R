@@ -83,26 +83,31 @@ shinyServer(function(input, output) {
     rcp <- switch(tolower(as.character(input$rcp1)),
                   'rcp4.5'=1,'rcp2.6'=2,'rcp8.5'=3)
     FUN <- switch(tolower(as.character(input$aspect)),
-                  "mean value"="mean", "change"="change","trend"="trend")
+                  "mean value"="mean", "change"="change","trend"="trend","variability"="sd")
+    FUNX <- switch(tolower(as.character(input$stats)),
+                   "ensemble mean"="mean", "ensemble spread"="sd")
     
     li <- (rcp-1)*4+season
     gcnames <- names(Z4[[li]])[-c(1,2,length(Z4[[1]]))]
     im <- is.element(gcmnames,input$im)
     
     if (FUN=="trend") it[2] <- max(c(it[2],it[1]+30))
-    main <- paste(FUN,input$param1,season,input$rcp1,li,it[1],it[2],is$lon1[1],is$lon1[2],is$lat1[1],is$lat1[2],sum(im))
+    main <- paste('Map of',FUN,tolower(input$param1),'for',season,'and scenario',
+                  toupper(input$rcp1),'and period',it[1],'-',it[2],
+                  'based on',sum(im),'model runs')
     
     y <- map(Z4[[li]],it=it,is=is,im=im,plot=FALSE)
     
     if (FUN=="change") {
-      FUN <- "mean"
+      y <- map(Z4[[li]],FUN="mean",FUNX=FUNX,it=it,is=is,im=im,plot=FALSE)
       it0 <- range(as.numeric(input$baseline))
       it0 <- c(1961,1990)
-      y0 <- map(Z4[[li]],it=it0,is=is,im=im,plot=FALSE)
+      y0 <- map(Z4[[li]],FUN="mean",FUNX=FUNX,it=it0,is=is,im=im,plot=FALSE)
       coredata(y) <- t(coredata(t(y)) - apply(coredata(t(y0)),1,FUN='mean'))
-    }
+    } else y <- map(Z4[[li]],FUN=FUN,FUNX=FUNX,it=it,is=is,im=im,plot=FALSE)
     
-    map(y,main=main,FUN=FUN,new=FALSE)
+    map(y,main=main,FUN="mean",new=FALSE)
+    
     }, height=function(){600})
    
   ## Plot individual station
@@ -120,7 +125,8 @@ shinyServer(function(input, output) {
     zz$pca <- subset(zz$pca,is=is)
     im <- is.element(gcmnames,input$im)
     z <- as.station(zz,im=im)
-    main <- paste(is,li,sum(im),sum(is.finite(coredata(z))),index(z)[1],paste(class(z),collapse='-'))
+    main <- paste('ensemble of',sum(im),'model runs with',
+                  sum(is.finite(coredata(z))),index(z)[1],'valid data')
     plot(z,main=main,target.show=FALSE,new=FALSE)
     #plot(rnorm(100),main=main)
   }, height=function(){600})
@@ -144,7 +150,8 @@ shinyServer(function(input, output) {
     is <- (1:length(lons))[keep]
     zz <- subset(zz,it=it,im=im,is=is)
     z <- as.station(zz)
-    main <- paste(input$param3,season,input$rcp3,li,it[1],it[2],length(is),sum(im))
+    main <- paste('Ensemble mean of',input$param3,'for',season,'and',
+                  toupper(input$rcp3),'scenario and',sum(im),'model runs')
     plot(z,main=main,new=FALSE)
     },height=function(){600})
   
@@ -173,7 +180,9 @@ shinyServer(function(input, output) {
     if (as.character(input$direction4) == "Colder") 
       prob <- pnorm(input$threshold4,mean(mean(z,na.rm=TRUE)),sd=sd(z,na.rm=TRUE)) else
       prob <- 1 - pnorm(input$threshold4,mean(mean(z,na.rm=TRUE)),sd=sd(z,na.rm=TRUE))
-    main <- paste(input$location4,is,li,sum(im),round(input$threshold4,2),round(100*prob,2))
+    main <- paste(input$location4,'using',sum(im),'model runs: the probability of',
+                  tolower(input$direction4),'than',round(input$threshold4,2),
+                  'is',round(100*prob,2))
     hist(z,breaks=breaks,main=main,new=FALSE,freq=FALSE,col='grey')
     X <- seq(-zx,zx,by=0.05)
     lines(X,dnorm(X,mean(mean(z,na.rm=TRUE)),sd=sd(z,na.rm=TRUE)),

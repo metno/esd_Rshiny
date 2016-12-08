@@ -1,7 +1,7 @@
 #!/usr/bin/env Rscript
 #args=commandArgs(trailingOnly=TRUE)
 
-args <- c('mu','rcp45','djf')
+args <- c('fw','rcp45','djf')
 
 ## R-job for downscaling Nordic temperatures for KSS 
 print('--- R-job for downscaling Nordic temperatures for KSS ---')
@@ -47,9 +47,9 @@ downscale <- function(Y,predictor,it='djf',param='t2m',FUN='mean',FUNX='mean',
   if (plot) plot(pca)
   
   ## Downscale results
-  print('DSensemble')
+  print(paste('DSensemble',predictor,pattern))
   dse.pca <- DSensemble(pca,predictor=predictor,FUNX=FUNX,verbose=verbose,
-                        biascorrect=TRUE,rcp=rcp,ip=ip,select=select,
+                        biascorrect=TRUE,rcp=rcp,ip=ip,select=select,path.ds=outdir,
                         nmin=1,pattern=pattern,lon=lon,lat=lat,rel.cord=rel.cord,it=it,
                         plot=plot,test=test)
   
@@ -65,7 +65,7 @@ param <- args[1]  # parameter
 rcp <- args[2]
 it <- args[3]
 landmask <- FALSE
-select <- NULL
+select <- 1
 test <- TRUE
 
 if (param=='t2m') {
@@ -83,28 +83,32 @@ if (param=='mu') {
   reanalysis <- 'air.mon.mean.nc'
   #reanalysis <- 'ERA40_t2m_mon.nc'
   FUN='wetmean'
-  #FUNX='C.C.eq'
-  FUNX='mean'
+  FUNX='C.C.eq'
+  #FUNX='mean'
   pattern='tas_Amon_ens'
   predictand <- '/lustre/storeB/users/rasmusb/data/rr.nordic.rda'
   varid <- 'precip'
   lon=c(-90,10); lat=c(25,75)
+  if (it=='djf') {lon=c(-90,10); lat=c(10,60)}
+  if (it=='mam') {lon=c(-50,30); lat=c(50,75)}
+  if (it=='jja') {lon=c(-30,30); lat=c(55,70)}
+  if (it=='son') {lon=c(-50,30); lat=c(50,70)}
   landmask <- TRUE
   n=3
 }
 if (param=='fw') {
-  #reanalysis <- 'slp.mon.mean.nc'
-  reanalysis <- 'ERA40_slp_mon.nc'
+  reanalysis <- 'slp.mon.mean.nc'
+  #reanalysis <- 'ERA40_slp_mon.nc'
   FUN='wetfreq'
   FUNX='mean'
   pattern='psl_Amon_ens'
   predictand <- '/lustre/storeB/users/rasmusb/data/rr.nordic.rda'
   varid <- 'precip'
-  lon=c(-30,30); lat=c(50,75)
-  n=5
+  lon=c(0,30); lat=c(50,70)
+  n=3
 }
 
-outdir <- '.'
+outdir <- paste('dse4kss-test',param,FUNX,sep='.')
 if (!file.exists(outdir)) dir.create(outdir)
 
 verbose=TRUE

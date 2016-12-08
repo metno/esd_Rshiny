@@ -11,7 +11,7 @@ Z4$djf.45 <- Z
 locs <<- loc(Z4[[1]]$pca)
 gcmnames <<- names(Z4[[1]])[-c(1,2,length(Z4[[1]]))]
 
-navbarPage("The Nordic region region climate atlas",
+navbarPage("The Nordic region climate atlas",
     tabPanel("Maps", 
              column(3,
                     selectInput("param1", 
@@ -228,13 +228,12 @@ tabPanel("Quality",  ## Unfinished!
              column(2,
                     selectInput("aspect", 
                                 label = "Aspect",
-                                choices = c("Mean value", "Change","Trend"),
+                                choices = c("Mean value", "Change","Trend","Variability"),
                                 selected = "Mean value")),
              column(3,
                     selectInput("stats", 
                                 label = "Statistic",
-                                choices = c("Ensemble mean", "95-percentile","5-percentile","Individual model",
-                                            "Ensemble spread","Model difference","Pr(X>x)","Pr(X<x)"),
+                                choices = c("Ensemble mean", "Ensemble spread"),
                                 selected = "Ensemble mean")),
              column(3,
                     sliderInput("baseline", "Years", 

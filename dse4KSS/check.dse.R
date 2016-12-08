@@ -1,20 +1,18 @@
 ## Test the downscaling for wet-day frequency
 library(esd)
 
-param <- 'mu'
-i <- 7
-ip <- 2
+param <- 't2m'
+i <- 13
+ip <- 1
 
-files <- list.files(pattern='dse.kss',path='~/Rshiny/dse4KSS/data',full.names=TRUE)
-files <- files[grep(param,files)]; files <- files[grep('eof',files)];
-#print(files)
+
+files <- list.files(pattern='dse.kss',path='~/R/Rshiny/dse4KSS/data',full.names=TRUE)
+files <- files[grep(param,files)]
 print(files[i])
 
 load(files[i])
 pca <- zoo(Z$pca[,ip])
-print(attr(Z,'predictor_file')) 
-print(attr(Z,'predictor_lon')); print(attr(Z,'predictor_lat'))
-print(Z$info)
+print(Z$info); print(attr(Z,'predictor_file')); print(attr(Z,'predictor_lon')); print(attr(Z,'predictor_lat'))
 Z$info <- NULL; Z$pca <- NULL; Z$eof <- NULL
 x <- unlist(lapply(Z,function(x) coredata(x)[,ip]))
 dim(x) <- c(length(Z[[1]][,1]),length(Z))

@@ -141,26 +141,26 @@ shinyServer(function(input, output) {
     param <- switch(tolower(as.character(input$param1)),
                     'temperature'=0,'wet-day freq.'=12,'precip. intensity'=24)
     FUN <- switch(tolower(as.character(input$aspect)),
-                  "mean value"="mean", "change"="change","trend"="trend")
+                  "mean value"="mean", "change"="change","trend"="trend","variability"="sd")
+    FUNX <- switch(tolower(as.character(input$stats)),
+                   "ensemble mean"="mean", "ensemble spread"="sd")
     
     li <- (rcp-1)*4+season + param
-    gcnames <- names(Z4[[li]])[-c(1,2,length(Z4[[1]]))]
+    gcnames <<- names(Z4[[li]])[-c(1,2,length(Z4[[1]]))]
     im <- is.element(gcmnames,input$im)
     
     if (FUN=="trend") it[2] <- max(c(it[2],it[1]+30))
-    main <- paste(FUN,input$param1,season,input$rcp1,li,it[1],it[2],is$lon1[1],is$lon1[2],is$lat1[1],is$lat1[2],sum(im))
-    
-    y <- map(Z4[[li]],it=it,is=is,im=im,plot=FALSE)
-    
+    main <- paste('Downscaled',FUN,season,tolower(input$param1),'for',it[1],'-',it[2],
+                  'following',toupper(input$rcp1),'based on',sum(im),'model runs')
     if (FUN=="change") {
-      FUN <- "mean"
+      y <- map(Z4[[li]],FUN="mean",FUNX=FUNX,it=it,is=is,im=im,plot=FALSE)
       it0 <- range(as.numeric(input$baseline))
       it0 <- c(1961,1990)
-      y0 <- map(Z4[[li]],it=it0,is=is,im=im,plot=FALSE)
+      y0 <- map(Z4[[li]],FUN="mean",FUNX=FUNX,it=it0,is=is,im=im,plot=FALSE)
       coredata(y) <- t(coredata(t(y)) - apply(coredata(t(y0)),1,FUN='mean'))
-    }
+    } else y <- map(Z4[[li]],FUN=FUN,FUNX=FUNX,it=it,is=is,im=im,plot=FALSE)
     
-    map(y,main=main,FUN=FUN,new=FALSE)
+    map(y,main=main,FUN="mean",new=FALSE)
     }, height=function(){600})
    
   ## Plot individual station
