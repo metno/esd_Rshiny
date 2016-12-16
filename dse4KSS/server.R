@@ -14,31 +14,87 @@ library(RgoogleMaps)
 
 Z4 <- list()
 load('data/dse.kss.t2m.rcp45.djf.eof.rda')
-Z4$djf.45 <- Z
+Z4$t2m.djf.45 <- Z
 load('data/dse.kss.t2m.rcp45.mam.eof.rda')
-Z4$mam.45 <- Z
+Z4$t2m.mam.45 <- Z
 load('data/dse.kss.t2m.rcp45.jja.eof.rda')
-Z4$jja.45 <- Z
+Z4$t2m.jja.45 <- Z
 load('data/dse.kss.t2m.rcp45.son.eof.rda')
-Z4$son.45 <- Z
+Z4$t2m.son.45 <- Z
 
 load('data/dse.kss.t2m.rcp26.djf.eof.rda')
-Z4$djf.26 <- Z
+Z4$t2m.djf.26 <- Z
 load('data/dse.kss.t2m.rcp26.mam.eof.rda')
-Z4$mam.26 <- Z
+Z4$t2m.mam.26 <- Z
 load('data/dse.kss.t2m.rcp26.jja.eof.rda')
-Z4$jja.26 <- Z
+Z4$t2m.jja.26 <- Z
 load('data/dse.kss.t2m.rcp26.son.eof.rda')
-Z4$son.26 <- Z
+Z4$t2m.son.26 <- Z
 
 load('data/dse.kss.t2m.rcp85.djf.eof.rda')
-Z4$djf.85 <- Z
+Z4$t2m.djf.85 <- Z
 load('data/dse.kss.t2m.rcp85.mam.eof.rda')
-Z4$mam.85 <- Z
+Z4$t2m.mam.85 <- Z
 load('data/dse.kss.t2m.rcp85.jja.eof.rda')
-Z4$jja.85 <- Z
+Z4$t2m.jja.85 <- Z
 load('data/dse.kss.t2m.rcp85.son.eof.rda')
-Z4$son.85 <- Z
+Z4$t2m.son.85 <- Z
+
+## Wet-day frequency
+load('data/dse.kss.fw.rcp45.djf.eof.rda')
+Z4$fw.djf.45 <- Z
+load('data/dse.kss.fw.rcp45.mam.eof.rda')
+Z4$fw.mam.45 <- Z
+load('data/dse.kss.fw.rcp45.jja.eof.rda')
+Z4$fw.jja.45 <- Z
+load('data/dse.kss.fw.rcp45.son.eof.rda')
+Z4$fw.son.45 <- Z
+
+load('data/dse.kss.fw.rcp26.djf.eof.rda')
+Z4$fw.djf.26 <- Z
+load('data/dse.kss.fw.rcp26.mam.eof.rda')
+Z4$fw.mam.26 <- Z
+load('data/dse.kss.fw.rcp26.jja.eof.rda')
+Z4$fw.jja.26 <- Z
+load('data/dse.kss.fw.rcp26.son.eof.rda')
+Z4$fw.son.26 <- Z
+
+load('data/dse.kss.fw.rcp85.djf.eof.rda')
+Z4$fw.djf.85 <- Z
+load('data/dse.kss.fw.rcp85.mam.eof.rda')
+Z4$fw.mam.85 <- Z
+load('data/dse.kss.fw.rcp85.jja.eof.rda')
+Z4$fw.jja.85 <- Z
+load('data/dse.kss.fw.rcp85.son.eof.rda')
+Z4$fw.son.85 <- Z
+
+## Wet-day mean precipitation
+load('data/dse.kss.mu.rcp45.djf.eof.rda')
+Z4$mu.djf.45 <- Z
+load('data/dse.kss.mu.rcp45.mam.eof.rda')
+Z4$mu.mam.45 <- Z
+load('data/dse.kss.mu.rcp45.jja.eof.rda')
+Z4$mu.jja.45 <- Z
+load('data/dse.kss.mu.rcp45.son.eof.rda')
+Z4$mu.son.45 <- Z
+
+load('data/dse.kss.mu.rcp26.djf.eof.rda')
+Z4$mu.djf.26 <- Z
+load('data/dse.kss.mu.rcp26.mam.eof.rda')
+Z4$mu.mam.26 <- Z
+load('data/dse.kss.mu.rcp26.jja.eof.rda')
+Z4$mu.jja.26 <- Z
+load('data/dse.kss.mu.rcp26.son.eof.rda')
+Z4$mu.son.26 <- Z
+
+load('data/dse.kss.mu.rcp85.djf.eof.rda')
+Z4$mu.djf.85 <- Z
+load('data/dse.kss.mu.rcp85.mam.eof.rda')
+Z4$mu.mam.85 <- Z
+load('data/dse.kss.mu.rcp85.jja.eof.rda')
+Z4$mu.jja.85 <- Z
+load('data/dse.kss.mu.rcp85.son.eof.rda')
+Z4$mu.son.85 <- Z
 
 load('data/t2m.nordic.rda')
 
@@ -82,27 +138,29 @@ shinyServer(function(input, output) {
                      'winter'=1,'spring'=2,'summer'=3,'autumn'=4)
     rcp <- switch(tolower(as.character(input$rcp1)),
                   'rcp4.5'=1,'rcp2.6'=2,'rcp8.5'=3)
+    param <- switch(tolower(as.character(input$param1)),
+                    'temperature'=0,'wet-day freq.'=12,'precip. intensity'=24)
     FUN <- switch(tolower(as.character(input$aspect)),
-                  "mean value"="mean", "change"="change","trend"="trend")
+                  "mean value"="mean", "change"="change","trend"="trend","variability"="sd")
+    FUNX <- switch(tolower(as.character(input$stats)),
+                   "ensemble mean"="mean", "ensemble spread"="sd")
     
-    li <- (rcp-1)*4+season
-    gcnames <- names(Z4[[li]])[-c(1,2,length(Z4[[1]]))]
+    li <- (rcp-1)*4+season + param
+    gcnames <<- names(Z4[[li]])[-c(1,2,length(Z4[[1]]))]
     im <- is.element(gcmnames,input$im)
     
     if (FUN=="trend") it[2] <- max(c(it[2],it[1]+30))
-    main <- paste(FUN,input$param1,season,input$rcp1,li,it[1],it[2],is$lon1[1],is$lon1[2],is$lat1[1],is$lat1[2],sum(im))
-    
-    y <- map(Z4[[li]],it=it,is=is,im=im,plot=FALSE)
-    
+    main <- paste('Downscaled',FUN,season,tolower(input$param1),'for',it[1],'-',it[2],
+                  'following',toupper(input$rcp1),'based on',sum(im),'model runs')
     if (FUN=="change") {
-      FUN <- "mean"
+      y <- map(Z4[[li]],FUN="mean",FUNX=FUNX,it=it,is=is,im=im,plot=FALSE)
       it0 <- range(as.numeric(input$baseline))
       it0 <- c(1961,1990)
-      y0 <- map(Z4[[li]],it=it0,is=is,im=im,plot=FALSE)
+      y0 <- map(Z4[[li]],FUN="mean",FUNX=FUNX,it=it0,is=is,im=im,plot=FALSE)
       coredata(y) <- t(coredata(t(y)) - apply(coredata(t(y0)),1,FUN='mean'))
-    }
+    } else y <- map(Z4[[li]],FUN=FUN,FUNX=FUNX,it=it,is=is,im=im,plot=FALSE)
     
-    map(y,main=main,FUN=FUN,new=FALSE)
+    map(y,main=main,FUN="mean",new=FALSE)
     }, height=function(){600})
    
   ## Plot individual station
@@ -111,7 +169,9 @@ shinyServer(function(input, output) {
                      'winter'=1,'spring'=2,'summer'=3,'autumn'=4)
     rcp <- switch(tolower(as.character(input$rcp2)),
                   'rcp4.5'=1,'rcp2.6'=2,'rcp8.5'=3)
-    li <- (rcp-1)*4+season
+    param <- switch(tolower(as.character(input$param2)),
+                    'temperature'=0,'wet-day freq.'=12,'precip. intensity'=24)
+    li <- (rcp-1)*4+season + param
     is <- (1:length(locs))[is.element(locs,as.character(input$location2))]
     gcnames <- names(Z4[[li]])[-c(1,2,length(Z4[[1]]))]
     zz <- Z4[[li]]; zz$eof <- NULL;
@@ -132,7 +192,9 @@ shinyServer(function(input, output) {
                      'winter'=1,'spring'=2,'summer'=3,'autumn'=4)
     rcp <- switch(tolower(as.character(input$rcp3)),
                   'rcp4.5'=1,'rcp2.6'=2,'rcp8.5'=3)
-    li <- (rcp-1)*4+season
+    param <- switch(tolower(as.character(input$param3)),
+                    'temperature'=0,'wet-day freq.'=12,'precip. intensity'=24)
+    li <- (rcp-1)*4+season+param
     gcnames <- names(Z4[[li]])[-c(1,2,length(Z4[[1]]))]
     im <- is.element(gcmnames,input$im)
     zz <- Z4[[li]]; zz$eof <- NULL;
@@ -158,7 +220,9 @@ shinyServer(function(input, output) {
                      'winter'=1,'spring'=2,'summer'=3,'autumn'=4)
     rcp <- switch(tolower(as.character(input$rcp4)),
                   'rcp4.5'=1,'rcp2.6'=2,'rcp8.5'=3)
-    li <- (rcp-1)*4+season
+    param <- switch(tolower(as.character(input$param4)),
+                    'temperature'=0,'wet-day freq.'=12,'precip. intensity'=24)
+    li <- (rcp-1)*4+season+param
     gcnames <- names(Z4[[li]])[-c(1,2,length(Z4[[1]]))]
     im <- is.element(gcmnames,input$im)
     is <- (1:length(locs))[is.element(locs,as.character(input$location4))]
@@ -200,7 +264,9 @@ shinyServer(function(input, output) {
                      'winter'=1,'spring'=2,'summer'=3,'autumn'=4)
     rcp <- switch(tolower(as.character(input$rcp6)),
                   'rcp4.5'=1,'rcp2.6'=2,'rcp8.5'=3)
-    li <- (rcp-1)*4+season
+    param <- switch(tolower(as.character(input$param6)),
+                    'temperature'=0,'wet-day freq.'=12,'precip. intensity'=24)
+    li <- (rcp-1)*4+season+param
     is <- list(lon=as.numeric(input$lon6),lat=as.numeric(input$lat6))
     im <- is.element(gcmnames,input$im)
     zz <- Z4[[li]]
@@ -242,7 +308,9 @@ shinyServer(function(input, output) {
                      'winter'=1,'spring'=2,'summer'=3,'autumn'=4)
     rcp <- switch(tolower(as.character(input$rcp7)),
                   'rcp4.5'=1,'rcp2.6'=2,'rcp8.5'=3)
-    li <- (rcp-1)*4+season
+    param <- switch(tolower(as.character(input$param7)),
+                    'temperature'=0,'wet-day freq.'=12,'precip. intensity'=24)
+    li <- (rcp-1)*4+season+param
     gcnames <- names(Z4[[li]])[-c(1,2,length(Z4[[1]]))]
     im1 <- is.element(gcmnames,input$im7)
     im <-  !is.element(gcmnames,input$im7) & is.element(gcmnames,input$im) 
