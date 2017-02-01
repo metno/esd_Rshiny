@@ -97,6 +97,12 @@ load('data/dse.kss.mu.rcp85.son.eof.rda')
 Z4$mu.son.85 <- Z
 
 load('data/t2m.nordic.rda')
+t2m <- Y
+load('data/rr.nordic.rda')
+rr <- Y
+rm('Y')
+t2m.locs <- loc(Z4[[1]]$pca)
+pre.locs <- loc(Z4[[12]]$pca)
 
 ## Estimate the probabilities for trend in observation is within the population trends based on of downscaled results
 ## zoo objects are slow so extract the core data
@@ -130,6 +136,15 @@ iview <- 0
 shinyServer(function(input, output) {
   countview <- reactiveValues(i = 1)
   
+  ## Try to get the location names to depend on whether temperature of precipitation stations
+  locs2 <- reactive({
+    switch(input$param2,
+           "Temperature" = t2m.locs,
+           "Wet-day freq." = pre.locs,
+           "Precip. intensity" = pre.locs)
+    browser()
+  })
+
   ## Show map of gridded temperature
   output$maps <- renderPlot({ 
     it <- range(as.numeric(input$dates1))
@@ -171,17 +186,24 @@ shinyServer(function(input, output) {
                   'rcp4.5'=1,'rcp2.6'=2,'rcp8.5'=3)
     param <- switch(tolower(as.character(input$param2)),
                     'temperature'=0,'wet-day freq.'=12,'precip. intensity'=24)
+    if (param==0) obs <- t2m else obs <- rr
+    fun <- switch(tolower(as.character(input$param2)),
+                  'temperature'='mean','wet-day freq.'='wetfreq','precip. intensity'='wetmean')
     li <- (rcp-1)*4+season + param
     is <- (1:length(locs))[is.element(locs,as.character(input$location2))]
     gcnames <- names(Z4[[li]])[-c(1,2,length(Z4[[1]]))]
     zz <- Z4[[li]]; zz$eof <- NULL;
-    class(zz) <- c('dsensemble','pca','list')
+    #class(zz) <- c('dsensemble','pca','list')
     ## Reduce the matrix size and pick one station before the recovery of the original format
     zz$pca <- subset(zz$pca,is=is)
     im <- is.element(gcmnames,input$im)
     z <- as.station(zz,im=im)
+    y <- subset(obs,is=is)
+    y <- subset(as.4seasons(y,FUN=fun),it=c('djf','mam','jja','son')[season])
     main <- paste(is,li,sum(im),sum(is.finite(coredata(z))),index(z)[1],paste(class(z),collapse='-'))
-    plot(z,main=main,target.show=FALSE,new=FALSE)
+    plot(z,main=main,obs.show=FALSE,target.show=FALSE,legend.show=FALSE,new=FALSE)
+    index(y) <- year(y)
+    lines(y,type='b',lwd=3,cex=1.2)
     #plot(rnorm(100),main=main)
   }, height=function(){600})
   
@@ -208,6 +230,7 @@ shinyServer(function(input, output) {
     z <- as.station(zz)
     main <- paste(input$param3,season,input$rcp3,li,it[1],it[2],length(is),sum(im))
     plot(z,main=main,new=FALSE)
+    grid()
     },height=function(){600})
   
   ## Show a map of evaluation scores

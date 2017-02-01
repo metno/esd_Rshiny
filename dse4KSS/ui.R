@@ -7,9 +7,13 @@ library(esd)
 
 Z4 <- list()
 load('data/dse.kss.t2m.rcp45.djf.eof.rda')
-Z4$djf.45 <- Z
-locs <<- loc(Z4[[1]]$pca)
+Z4$tas <- Z
+load('data/dse.kss.mu.rcp45.djf.eof.rda')
+Z4$pre <- Z
+t2m.locs <- loc(Z4[[1]]$pca)
+pre.locs <- loc(Z4[[2]]$pca)
 gcmnames <<- names(Z4[[1]])[-c(1,2,length(Z4[[1]]))]
+locs2 <- t2m.locs
 
 navbarPage("The Nordic region climate atlas",
     tabPanel("Maps", 
@@ -44,10 +48,11 @@ navbarPage("The Nordic region climate atlas",
              ),
     tabPanel("Single location", 
              column(3,
-                    selectInput("location2", 
+                      selectInput("location2", 
                                 label = "Location",
-                                choices = locs,
+                                choices = locs2,
                                 selected = "OSLO BLINDERN")),
+              #uiOutput("location2"),    
              column(3,
                     selectInput("param2", 
                                 label = "Element",
