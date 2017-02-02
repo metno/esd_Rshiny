@@ -1,12 +1,12 @@
 ## Test the downscaling for wet-day frequency
 library(esd)
 
-param <- 't2m'
+param <- 'fw'
 i <- 7
 ip <- 1
 
 
-files <- list.files(pattern='dse.kss',path='~/Rshiny/dse4KSS/data',full.names=TRUE)
+files <- list.files(pattern='dse.kss',path='~/R/Rshiny/dse4KSS/data',full.names=TRUE)
 files <- files[grep(param,files)]
 print(files[i])
 
