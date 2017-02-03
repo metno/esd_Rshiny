@@ -426,7 +426,7 @@ shinyServer(function(input, output) {
     data(geoborders)
     lines(geoborders,col='grey')
    
-    col <- rep(rgb(0,0.5,0.5),length(z)); pch <- rep(19,length(z))
+    col <- rep(rgb(0,0.5,0.5),length(lons)); pch <- rep(19,length(lons))
     q2 <- score[1,] < 0.1 | score[1,] > 0.9
     q3 <- score[1,] < 0.05 | score[1,] > 0.95
     col[q2] <- rgb(0.5,0.5,0); pch[q2] <- 15
