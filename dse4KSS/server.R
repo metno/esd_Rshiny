@@ -268,7 +268,7 @@ shinyServer(function(input, output) {
     main <- paste(is,li,sum(im),sum(is.finite(coredata(z))),index(z)[1],paste(class(z),collapse='-'))
     #plot(z,main=main,obs.show=FALSE,target.show=FALSE,legend.show=FALSE,new=FALSE)
     plot(z,main=main,target.show=FALSE,legend.show=FALSE,new=FALSE)
-    index(y) <- year(y)
+    #index(y) <- year(y)
     #lines(y,type='b',lwd=3,cex=1.2)
     #plot(rnorm(100),main=main)
   }, height=function(){600})
@@ -382,9 +382,6 @@ shinyServer(function(input, output) {
     }
     })
   
-  ## Unfinished!
-  output$plot.warmcolddays <- renderPlot({plot(rnorm(100))})
-  
   ## Unfinished!  
   output$map.quality <- renderPlot({ 
     season <- switch(tolower(as.character(input$season6)),
@@ -479,16 +476,19 @@ shinyServer(function(input, output) {
     li <- (rcp-1)*4+season
     gcnames <- names(Z4[[li]])[-c(1,2,length(Z4[[1]]))]
     im <- is.element(gcmnames,input$im)
-    is <- (1:length(locs))[is.element(locs,as.character(input$location8))]
+    is <- srt.t2m[is.element(t2m.locs,as.character(input$location8))]
+    is0 <- (1:length(loc(t2m)))[is.element(loc(t2m),as.character(input$location8))]
     zz <- Z4[[li]]; zz$eof <- NULL;
     class(zz) <- c('dsensemble','pca','season','list')
     lons <- lon(zz$pca); lats <- lat(zz$pca); alts <- alt(zz$pca)
     zz <- subset(zz,im=im,is=is)
     z <- as.station(zz)
     if (as.character(input$direction8) == "Hot summer days") {
-      nds <- hotsummerdays(subset(t2m,is=is),dse=z,it=c('djf','mam','jja','son')[season],threshold=input$threshold8,plot=FALSE)
+      nds <- hotsummerdays(subset(t2m,is=is0),dse=z,
+                           it=c('djf','mam','jja','son')[season],threshold=input$threshold8,plot=FALSE)
     } else {
-      nds <- coldwinterdays(subset(t2m,is=is),dse=z,it=c('djf','mam','jja','son')[season],threshold=input$threshold8,plot=FALSE)
+      nds <- coldwinterdays(subset(t2m,is=is0),dse=z,
+                            it=c('djf','mam','jja','son')[season],threshold=input$threshold8,plot=FALSE)
     }
     plot(nds)
   })
