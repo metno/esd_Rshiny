@@ -231,23 +231,34 @@ shinyServer(function(input, output) {
     #if (param==0) obs <- t2m else obs <- rr
     fun <- switch(tolower(as.character(input$param2)),
                   'temperature'='mean','wet-day freq.'='wetfreq','precip. intensity'='wetmean')
-    if (param>=0) li <- (rcp-1)*4+season + param else
-                  li <- (rcp-1)*4+season + 12
-
-    locs2 <- switch(input$param2,
-             "Temperature" = t2m.locs,
-             "Wet-day freq." = pre.locs,
-             "Precip. intensity" = pre.locs,
-             "Precip. sum"=pre.locs)
-    if (param==0) is <- srt.t2m[is.element(locs2,as.character(input$location2))] else
-                  is <- srt.pre[is.element(locs2,as.character(input$location2))]
+    if (param>=0) {
+      li <- (rcp-1)*4+season + param
+    } else {
+      li <- (rcp-1)*4+season + 12
+    }
+    
+    locs2 <- switch(tolower(as.character(input$param2)),
+             "temperature" = t2m.locs,
+             "wet-day freq." = pre.locs,
+             "precip. intensity" = pre.locs,
+             "precip. sum"=pre.locs)
+    
+    if (param==0) {
+      is <- srt.t2m[is.element(locs2,as.character(input$location2))]
+    } else {
+      is <- srt.pre[is.element(locs2,as.character(input$location2))]
+    }
+    
     gcnames <- names(Z4[[li]])[-c(1,2,length(Z4[[1]]))]
     
     zz <- Z4[[li]]; zz$eof <- NULL;
     ## Reduce the matrix size and pick one station before the recovery of the original format
-    zz$pca <- subset(zz$pca,is=is)
+    
+    if(!is.null(is)) zz$pca <- subset(zz$pca,is=is,verbose=TRUE)
     im <- is.element(gcmnames,input$im)
+    
     z <- as.station(zz,im=im)
+    
     if (param<0) {
       z1 <- z
       zz2 <- Z4[[li+12]]; zz2$eof <- NULL;
@@ -271,7 +282,8 @@ shinyServer(function(input, output) {
     #y <- subset(as.4seasons(y,FUN=fun),it=c('djf','mam','jja','son')[season])
     main <- paste(is,li,sum(im),sum(is.finite(coredata(z))),index(z)[1],paste(class(z),collapse='-'))
     #plot(z,main=main,obs.show=FALSE,target.show=FALSE,legend.show=FALSE,new=FALSE)
-    plot(z,main=main,target.show=FALSE,legend.show=FALSE,new=FALSE)
+    plot(z,main=main,target.show=FALSE,legend.show=FALSE,new=FALSE,
+         usegooglemap=FALSE)
     #index(y) <- year(y)
     #lines(y,type='b',lwd=3,cex=1.2)
     #plot(rnorm(100),main=main)
@@ -300,7 +312,7 @@ shinyServer(function(input, output) {
     zz <- subset(zz,it=it,im=im,is=is)
     z <- as.station(zz)
     main <- paste(input$param3,season,input$rcp3,li,it[1],it[2],length(is),sum(im))
-    plot(z,main=main,new=FALSE)
+    plot(z,main=main,new=FALSE,usegooglemap=FALSE)
     grid()
     },height=function(){600})
   
