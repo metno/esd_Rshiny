@@ -191,25 +191,29 @@ shinyServer(function(input, output) {
       ## a field object
       zmap1 <- Z4[[(rcp-1)*4+season + 12]]
       zmap2 <- Z4[[(rcp-1)*4+season + 24]]
-      zmap1 <- map(zmap1,FUN="mean",FUNX=FUNX,it=it,is=is,im=im,plot=FALSE)
-      zmap2 <- map(zmap2,FUN="mean",FUNX=FUNX,it=it,is=is,im=im,plot=FALSE)
+      itx <- it
+      if ((FUN=="change")) itx <- c(min(1961,itx),max(1990,itx)) else 
+      if (FUN=="trend") itx[2] <- max(c(itx[2],itx[1]+30))
+      zmap1 <- map(zmap1,FUN="mean",FUNX=FUNX,it=itx,is=is,im=im,plot=FALSE)
+      zmap2 <- map(zmap2,FUN="mean",FUNX=FUNX,it=itx,is=is,im=im,plot=FALSE)
       zmap <- 90*zmap1*zmap2
       zmap <- attrcp(zmap1,zmap)
       class(zmap) <- class(zmap1)
-      attr(zmap,'varible') <- 'precip'
+      attr(zmap,'variable') <- 'precip'
       attr(zmap,'unit') <- 'mm/season'
       rm('zmap1','zmap2')
     }
     
     if (FUN=="trend") it[2] <- max(c(it[2],it[1]+30))
-    main <- paste('Downscaled',FUN,season,tolower(input$param1),'for',it[1],'-',it[2],
+    main <- paste('Downscaled',FUN,input$season1,tolower(input$param1),'for',it[1],'-',it[2],
                   'following',toupper(input$rcp1),'based on',sum(im),'model runs')
     if (FUN=="change") {
       y <- map(zmap,FUN="mean",FUNX=FUNX,it=it,is=is,im=im,plot=FALSE)
       it0 <- range(as.numeric(input$baseline))
-      it0 <- c(1961,1990)
+      #it0 <- c(1961,1990)
       y0 <- map(zmap,FUN="mean",FUNX=FUNX,it=it0,is=is,im=im,plot=FALSE)
-      coredata(y) <- t(coredata(t(y)) - apply(coredata(t(y0)),1,FUN='mean'))
+      if (is.zoo(y)) coredata(y) <- t(coredata(t(y)) - apply(coredata(t(y0)),1,FUN='mean')) else
+                     y <- y - y0  
     } else y <- map(zmap,FUN=FUN,FUNX=FUNX,it=it,is=is,im=im,plot=FALSE)
     
     map(y,main=main,FUN="mean",new=FALSE)
