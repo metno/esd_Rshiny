@@ -191,25 +191,29 @@ shinyServer(function(input, output) {
       ## a field object
       zmap1 <- Z4[[(rcp-1)*4+season + 12]]
       zmap2 <- Z4[[(rcp-1)*4+season + 24]]
-      zmap1 <- map(zmap1,FUN="mean",FUNX=FUNX,it=it,is=is,im=im,plot=FALSE)
-      zmap2 <- map(zmap2,FUN="mean",FUNX=FUNX,it=it,is=is,im=im,plot=FALSE)
+      itx <- it
+      if ((FUN=="change")) itx <- c(min(1961,itx),max(1990,itx)) else 
+      if (FUN=="trend") itx[2] <- max(c(itx[2],itx[1]+30))
+      zmap1 <- map(zmap1,FUN="mean",FUNX=FUNX,it=itx,is=is,im=im,plot=FALSE)
+      zmap2 <- map(zmap2,FUN="mean",FUNX=FUNX,it=itx,is=is,im=im,plot=FALSE)
       zmap <- 90*zmap1*zmap2
       zmap <- attrcp(zmap1,zmap)
       class(zmap) <- class(zmap1)
-      attr(zmap,'varible') <- 'precip'
+      attr(zmap,'variable') <- 'precip'
       attr(zmap,'unit') <- 'mm/season'
       rm('zmap1','zmap2')
     }
     
     if (FUN=="trend") it[2] <- max(c(it[2],it[1]+30))
-    main <- paste('Downscaled',FUN,season,tolower(input$param1),'for',it[1],'-',it[2],
+    main <- paste('Downscaled',FUN,input$season1,tolower(input$param1),'for',it[1],'-',it[2],
                   'following',toupper(input$rcp1),'based on',sum(im),'model runs')
     if (FUN=="change") {
       y <- map(zmap,FUN="mean",FUNX=FUNX,it=it,is=is,im=im,plot=FALSE)
       it0 <- range(as.numeric(input$baseline))
-      it0 <- c(1961,1990)
+      #it0 <- c(1961,1990)
       y0 <- map(zmap,FUN="mean",FUNX=FUNX,it=it0,is=is,im=im,plot=FALSE)
-      coredata(y) <- t(coredata(t(y)) - apply(coredata(t(y0)),1,FUN='mean'))
+      if (is.zoo(y)) coredata(y) <- t(coredata(t(y)) - apply(coredata(t(y0)),1,FUN='mean')) else
+                     y <- y - y0  
     } else y <- map(zmap,FUN=FUN,FUNX=FUNX,it=it,is=is,im=im,plot=FALSE)
     
     map(y,main=main,FUN="mean",new=FALSE)
@@ -268,7 +272,7 @@ shinyServer(function(input, output) {
     main <- paste(is,li,sum(im),sum(is.finite(coredata(z))),index(z)[1],paste(class(z),collapse='-'))
     #plot(z,main=main,obs.show=FALSE,target.show=FALSE,legend.show=FALSE,new=FALSE)
     plot(z,main=main,target.show=FALSE,legend.show=FALSE,new=FALSE)
-    index(y) <- year(y)
+    #index(y) <- year(y)
     #lines(y,type='b',lwd=3,cex=1.2)
     #plot(rnorm(100),main=main)
   }, height=function(){600})
@@ -382,9 +386,6 @@ shinyServer(function(input, output) {
     }
     })
   
-  ## Unfinished!
-  output$plot.warmcolddays <- renderPlot({plot(rnorm(100))})
-  
   ## Unfinished!  
   output$map.quality <- renderPlot({ 
     season <- switch(tolower(as.character(input$season6)),
@@ -429,7 +430,7 @@ shinyServer(function(input, output) {
     data(geoborders)
     lines(geoborders,col='grey')
    
-    col <- rep(rgb(0,0.5,0.5),length(z)); pch <- rep(19,length(z))
+    col <- rep(rgb(0,0.5,0.5),length(lons)); pch <- rep(19,length(lons))
     q2 <- score[1,] < 0.1 | score[1,] > 0.9
     q3 <- score[1,] < 0.05 | score[1,] > 0.95
     col[q2] <- rgb(0.5,0.5,0); pch[q2] <- 15
@@ -479,16 +480,19 @@ shinyServer(function(input, output) {
     li <- (rcp-1)*4+season
     gcnames <- names(Z4[[li]])[-c(1,2,length(Z4[[1]]))]
     im <- is.element(gcmnames,input$im)
-    is <- (1:length(locs))[is.element(locs,as.character(input$location8))]
+    is <- srt.t2m[is.element(t2m.locs,as.character(input$location8))]
+    is0 <- (1:length(loc(t2m)))[is.element(loc(t2m),as.character(input$location8))]
     zz <- Z4[[li]]; zz$eof <- NULL;
     class(zz) <- c('dsensemble','pca','season','list')
     lons <- lon(zz$pca); lats <- lat(zz$pca); alts <- alt(zz$pca)
     zz <- subset(zz,im=im,is=is)
     z <- as.station(zz)
     if (as.character(input$direction8) == "Hot summer days") {
-      nds <- hotsummerdays(subset(t2m,is=is),dse=z,it=c('djf','mam','jja','son')[season],threshold=input$threshold8,plot=FALSE)
+      nds <- hotsummerdays(subset(t2m,is=is0),dse=z,
+                           it=c('djf','mam','jja','son')[season],threshold=input$threshold8,plot=FALSE)
     } else {
-      nds <- coldwinterdays(subset(t2m,is=is),dse=z,it=c('djf','mam','jja','son')[season],threshold=input$threshold8,plot=FALSE)
+      nds <- coldwinterdays(subset(t2m,is=is0),dse=z,
+                            it=c('djf','mam','jja','son')[season],threshold=input$threshold8,plot=FALSE)
     }
     plot(nds)
   })
