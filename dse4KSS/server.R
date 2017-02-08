@@ -8,6 +8,7 @@ library(shiny)
 library(esd)
 #if ('RgoogleMaps' %in% installed.packages()) install.packages('RgoogleMaps')
 library(RgoogleMaps)
+source("~/git/esd/R/plot.R")
 
 ## Preparations - grid the station data and reduce the size of the data by keeping only
 ## the most important PCA modes.
@@ -253,37 +254,37 @@ shinyServer(function(input, output) {
     
     zz <- Z4[[li]]; zz$eof <- NULL;
     ## Reduce the matrix size and pick one station before the recovery of the original format
-    
-    if(!is.null(is)) zz$pca <- subset(zz$pca,is=is,verbose=TRUE)
-    im <- is.element(gcmnames,input$im)
-    
-    z <- as.station(zz,im=im)
-    
-    if (param<0) {
-      z1 <- z
-      zz2 <- Z4[[li+12]]; zz2$eof <- NULL;
+    if(!is.null(input$location2)) {
+      zz$pca <- subset(zz$pca,is=is)
+      im <- is.element(gcmnames,input$im)
+      z <- as.station(zz,im=im,verbose=TRUE)
+      if (param<0) {
+        z1 <- z
+        zz2 <- Z4[[li+12]]; zz2$eof <- NULL;
       
-      ## Reduce the matrix size and pick one station before the recovery of the original format
-      zz2$pca <- subset(zz2$pca,is=is)
-      z2 <- as.station(zz2,im=im)
-      z <- 90*z1*z2
-      z <- attrcp(z2,z)
-      attr(z,'station') <- 90*attr(z1,'station')*attr(z2,'station')
-      attr(z,'station') <- attrcp(attr(z1,'station'),attr(z,'station'))
-      class(attr(z,'station')) <- class(attr(z1,'station'))
-      attr(z,'varible') <- 'precip'
-      attr(z,'unit') <- 'mm/season'
-      attr(attr(z,'station'),'varible') <- 'precip'
-      attr(attr(z,'station'),'unit') <- 'mm/season'
-      class(z) <- class(z2)
-      rm('z1','z2')
+        ## Reduce the matrix size and pick one station before the recovery of the original format
+        zz2$pca <- subset(zz2$pca,is=is)
+        z2 <- as.station(zz2,im=im)
+        z <- 90*z1*z2
+        z <- attrcp(z2,z)
+        attr(z,'station') <- 90*attr(z1,'station')*attr(z2,'station')
+        attr(z,'station') <- attrcp(attr(z1,'station'),attr(z,'station'))
+        class(attr(z,'station')) <- class(attr(z1,'station'))
+        attr(z,'varible') <- 'precip'
+        attr(z,'unit') <- 'mm/season'
+        attr(attr(z,'station'),'varible') <- 'precip'
+        attr(attr(z,'station'),'unit') <- 'mm/season'
+        class(z) <- class(z2)
+        rm('z1','z2')
+      }
+      #y <- subset(obs,is=is)
+      #y <- subset(as.4seasons(y,FUN=fun),it=c('djf','mam','jja','son')[season])
+      #main <- paste(is,li,sum(im),sum(is.finite(coredata(z))),index(z)[1],paste(class(z),collapse='-'))
+      main <- paste(is,li,sum(im),index(z)[1],paste(class(z),collapse='-'))
+      #plot(z,main=main,obs.show=FALSE,target.show=FALSE,legend.show=FALSE,new=FALSE)
+      plot(z,main=main,target.show=FALSE,legend.show=FALSE,new=FALSE,
+           map.show=TRUE,usegooglemap=FALSE,verbose=TRUE)
     }
-    #y <- subset(obs,is=is)
-    #y <- subset(as.4seasons(y,FUN=fun),it=c('djf','mam','jja','son')[season])
-    main <- paste(is,li,sum(im),sum(is.finite(coredata(z))),index(z)[1],paste(class(z),collapse='-'))
-    #plot(z,main=main,obs.show=FALSE,target.show=FALSE,legend.show=FALSE,new=FALSE)
-    plot(z,main=main,target.show=FALSE,legend.show=FALSE,new=FALSE,
-         usegooglemap=FALSE)
     #index(y) <- year(y)
     #lines(y,type='b',lwd=3,cex=1.2)
     #plot(rnorm(100),main=main)
