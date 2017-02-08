@@ -8,7 +8,6 @@ library(shiny)
 library(esd)
 #if ('RgoogleMaps' %in% installed.packages()) install.packages('RgoogleMaps')
 library(RgoogleMaps)
-source("~/git/esd/R/plot.R")
 
 ## Preparations - grid the station data and reduce the size of the data by keeping only
 ## the most important PCA modes.
