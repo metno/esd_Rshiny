@@ -8,6 +8,7 @@ library(shiny)
 library(esd)
 #if ('RgoogleMaps' %in% installed.packages()) install.packages('RgoogleMaps')
 library(RgoogleMaps)
+source("~/git/esd/R/plot.R")
 
 ## Preparations - grid the station data and reduce the size of the data by keeping only
 ## the most important PCA modes.
@@ -136,7 +137,7 @@ varscore <- function(x) {
 }
 
 
-shinyServer(function(input, output) {
+shinyServer(function(input, output, session) {
   #countview <- reactiveValues(i = 1)
   
   ## Try to get the location names to depend on whether temperature of precipitation stations
@@ -162,7 +163,17 @@ shinyServer(function(input, output) {
                 choices = Locs4,
                 selected = "OSLO BLINDERN")
   })
-  
+  output$thresholds8 <- renderUI({
+    Thresh8 <- switch(input$direction8,
+                     "Hot summer days"=20,
+                     "Cold winter days"=0)
+    numericInput("threshold8",
+                 label = "Threshold",
+                 value = Thresh8,
+                 min = -50.0,
+                 max = 50.0)
+  })
+    
   ## Show map of gridded temperature
   output$maps <- renderPlot({ 
     it <- range(as.numeric(input$dates1))
@@ -217,46 +228,46 @@ shinyServer(function(input, output) {
     } else y <- map(zmap,FUN=FUN,FUNX=FUNX,it=it,is=is,im=im,plot=FALSE)
     
     map(y,main=main,FUN="mean",new=FALSE)
-    }, height=function(){600})
+    }, height=function(){0.8*session$clientData$output_maps_width})
    
   ## Plot individual station
   output$plot <- renderPlot({
-    season <- switch(tolower(as.character(input$season2)),
-                     'winter'=1,'spring'=2,'summer'=3,'autumn'=4)
-    rcp <- switch(tolower(as.character(input$rcp2)),
-                  'rcp4.5'=1,'rcp2.6'=2,'rcp8.5'=3)
-    param <- switch(tolower(as.character(input$param2)),
-                    'temperature'=0,'wet-day freq.'=12,'precip. intensity'=24,
-                    'precip. sum'=-1)
-    #if (param==0) obs <- t2m else obs <- rr
-    fun <- switch(tolower(as.character(input$param2)),
-                  'temperature'='mean','wet-day freq.'='wetfreq','precip. intensity'='wetmean')
-    if (param>=0) {
-      li <- (rcp-1)*4+season + param
-    } else {
-      li <- (rcp-1)*4+season + 12
-    }
-    
-    locs2 <- switch(tolower(as.character(input$param2)),
-             "temperature" = t2m.locs,
-             "wet-day freq." = pre.locs,
-             "precip. intensity" = pre.locs,
-             "precip. sum"=pre.locs)
-    
-    if (param==0) {
-      is <- srt.t2m[is.element(locs2,as.character(input$location2))]
-    } else {
-      is <- srt.pre[is.element(locs2,as.character(input$location2))]
-    }
-    
-    gcnames <- names(Z4[[li]])[-c(1,2,length(Z4[[1]]))]
-    
-    zz <- Z4[[li]]; zz$eof <- NULL;
-    ## Reduce the matrix size and pick one station before the recovery of the original format
     if(!is.null(input$location2)) {
+      season <- switch(tolower(as.character(input$season2)),
+                       'winter'=1,'spring'=2,'summer'=3,'autumn'=4)
+      rcp <- switch(tolower(as.character(input$rcp2)),
+                    'rcp4.5'=1,'rcp2.6'=2,'rcp8.5'=3)
+      param <- switch(tolower(as.character(input$param2)),
+                      'temperature'=0,'wet-day freq.'=12,'precip. intensity'=24,
+                      'precip. sum'=-1)
+      #if (param==0) obs <- t2m else obs <- rr
+      fun <- switch(tolower(as.character(input$param2)),
+                    'temperature'='mean','wet-day freq.'='wetfreq','precip. intensity'='wetmean')
+      if (param>=0) {
+        li <- (rcp-1)*4+season + param
+      } else {
+        li <- (rcp-1)*4+season + 12
+      }
+    
+      locs2 <- switch(tolower(as.character(input$param2)),
+               "temperature" = t2m.locs,
+               "wet-day freq." = pre.locs,
+               "precip. intensity" = pre.locs,
+               "precip. sum"=pre.locs)
+      
+      if (param==0) {
+        is <- srt.t2m[is.element(locs2,as.character(input$location2))]
+      } else {
+        is <- srt.pre[is.element(locs2,as.character(input$location2))]
+      }
+    
+      gcnames <- names(Z4[[li]])[-c(1,2,length(Z4[[1]]))]
+    
+      zz <- Z4[[li]]; zz$eof <- NULL;
+      ## Reduce the matrix size and pick one station before the recovery of the original format
       zz$pca <- subset(zz$pca,is=is)
       im <- is.element(gcmnames,input$im)
-      z <- as.station(zz,im=im,verbose=TRUE)
+      z <- as.station(zz,im=im,verbose=FALSE)
       if (param<0) {
         z1 <- z
         zz2 <- Z4[[li+12]]; zz2$eof <- NULL;
@@ -282,12 +293,12 @@ shinyServer(function(input, output) {
       main <- paste(is,li,sum(im),index(z)[1],paste(class(z),collapse='-'))
       #plot(z,main=main,obs.show=FALSE,target.show=FALSE,legend.show=FALSE,new=FALSE)
       plot(z,main=main,target.show=FALSE,legend.show=FALSE,new=FALSE,
-           map.show=TRUE,usegooglemap=FALSE,verbose=TRUE)
+           map.show=TRUE,usegooglemap=FALSE,verbose=FALSE)
     }
     #index(y) <- year(y)
     #lines(y,type='b',lwd=3,cex=1.2)
     #plot(rnorm(100),main=main)
-  }, height=function(){600})
+  }, height=function(){0.65*session$clientData$output_plot_width}) #600})
   
   ## Plot ensemble statistics for multiple-stations
   output$plot.multi <- renderPlot({ 
@@ -312,91 +323,93 @@ shinyServer(function(input, output) {
     zz <- subset(zz,it=it,im=im,is=is)
     z <- as.station(zz)
     main <- paste(input$param3,season,input$rcp3,li,it[1],it[2],length(is),sum(im))
-    plot(z,main=main,new=FALSE,usegooglemap=FALSE)
+    plot(z,main=main,new=FALSE,fig=c(0,1,0,0.8),usegooglemap=FALSE,verbose=FALSE)
     grid()
-    },height=function(){600})
+    },height=function(){0.65*session$clientData$output_plot.multi_width} )#600})
   
   ## Show a map of evaluation scores
   ## Central parts of circle shows trend similarity
   ## Outer rim shows the number outside the 90% confidence interval
   
   output$plot.prob <- renderPlot({
-    it <- range(as.numeric(input$dates4))
-    season <- switch(tolower(as.character(input$season4)),
-                     'winter'=1,'spring'=2,'summer'=3,'autumn'=4)
-    rcp <- switch(tolower(as.character(input$rcp4)),
-                  'rcp4.5'=1,'rcp2.6'=2,'rcp8.5'=3)
-    param <- switch(tolower(as.character(input$param4)),
-                    'temperature'=0,'wet-day freq.'=12,'precip. intensity'=24,
-                    'precip. sum'=-1)
-    if (param>=0) li <- (rcp-1)*4+season + param else
-                  li <- (rcp-1)*4+season + 12
-    gcnames <- names(Z4[[li]])[-c(1,2,length(Z4[[1]]))]
-    im <- is.element(gcmnames,input$im)
-    locs4 <- switch(input$param4,
-                    "Temperature" = t2m.locs,
-                    "Wet-day freq." = pre.locs,
-                    "Precip. intensity" = pre.locs,
+    if(!is.null(input$location4)) {
+      it <- range(as.numeric(input$dates4))
+      season <- switch(tolower(as.character(input$season4)),
+                       'winter'=1,'spring'=2,'summer'=3,'autumn'=4)
+      rcp <- switch(tolower(as.character(input$rcp4)),
+                    'rcp4.5'=1,'rcp2.6'=2,'rcp8.5'=3)
+      param <- switch(tolower(as.character(input$param4)),
+                      'temperature'=0,'wet-day freq.'=12,'precip. intensity'=24,
+                      'precip. sum'=-1)
+      if (param>=0) li <- (rcp-1)*4+season + param else
+                    li <- (rcp-1)*4+season + 12 
+      gcnames <- names(Z4[[li]])[-c(1,2,length(Z4[[1]]))]
+      im <- is.element(gcmnames,input$im)
+      locs4 <- switch(input$param4,
+                      "Temperature" = t2m.locs,
+                      "Wet-day freq." = pre.locs,
+                      "Precip. intensity" = pre.locs,
                     "Precip. sum"=pre.locs)
-    if (param==0) is <- srt.t2m[is.element(locs4,as.character(input$location4))] else
-                  is <- srt.pre[is.element(locs4,as.character(input$location4))]
+      if (param==0) is <- srt.t2m[is.element(locs4,as.character(input$location4))] else
+                    is <- srt.pre[is.element(locs4,as.character(input$location4))]
     
-    zz <- Z4[[li]]; zz$eof <- NULL;
-    class(zz) <- c('dsensemble','pca','season','list')
-    lons <- lon(zz$pca); lats <- lat(zz$pca); alts <- alt(zz$pca)
-    zz <- subset(zz,im=im,is=is)
-    z <- as.station(zz)
-    ## Total precipitation
-    if (param<0) {
-      z1 <- z
-      zz2 <- Z4[[li+12]]; zz2$eof <- NULL;
-      
-      ## Reduce the matrix size and pick one station before the recovery of the original format
-      zz2$pca <- subset(zz2$pca,is=is)
-      z2 <- as.station(zz2,im=im)
-      z <- 90*z1*z2
-      z <- attrcp(z2,z)
-      attr(z,'station') <- 90*attr(z1,'station')*attr(z2,'station')
-      attr(z,'station') <- attrcp(attr(z1,'station'),attr(z,'station'))
-      class(attr(z,'station')) <- class(attr(z1,'station'))
-      attr(z,'varible') <- 'precip'
-      attr(z,'unit') <- 'mm/season'
-      attr(attr(z,'station'),'varible') <- 'precip'
-      attr(attr(z,'station'),'unit') <- 'mm/season'
-      class(z) <- class(z2)
-      rm('z1','z2')
+      zz <- Z4[[li]]; zz$eof <- NULL;
+      class(zz) <- c('dsensemble','pca','season','list')
+      lons <- lon(zz$pca); lats <- lat(zz$pca); alts <- alt(zz$pca)
+      zz <- subset(zz,im=im,is=is)
+      z <- as.station(zz)
+      ## Total precipitation
+      if (param<0) {
+        z1 <- z
+        zz2 <- Z4[[li+12]]; zz2$eof <- NULL;
+        
+        ## Reduce the matrix size and pick one station before the recovery of the original format
+        zz2$pca <- subset(zz2$pca,is=is)
+        z2 <- as.station(zz2,im=im)
+        z <- 90*z1*z2
+        z <- attrcp(z2,z)
+        attr(z,'station') <- 90*attr(z1,'station')*attr(z2,'station')
+        attr(z,'station') <- attrcp(attr(z1,'station'),attr(z,'station'))
+        class(attr(z,'station')) <- class(attr(z1,'station'))
+        attr(z,'varible') <- 'precip'
+        attr(z,'unit') <- 'mm/season'
+        attr(attr(z,'station'),'varible') <- 'precip'
+        attr(attr(z,'station'),'unit') <- 'mm/season'
+        class(z) <- class(z2)
+        rm('z1','z2')
+      }
+      z <- c(as.numeric(subset(z,it=it)))
+      zx <- ceiling(max(c(abs(z),abs(input$threshold4)),na.rm=TRUE))+1
+      breaks <- switch(input$param4,
+                       "Temperature" = seq(-zx,zx,by=0.5),
+                       "Wet-day freq." = seq(0,1,by=0.02),
+                       "Precip. intensity" = seq(0,zx,by=0.2),
+                       "Precip. sum"=seq(0,zx,by=10))
+      if (as.character(input$direction4) == "Lower") {
+        prob <- pnorm(input$threshold4,mean(mean(z,na.rm=TRUE)),sd=sd(z,na.rm=TRUE)) 
+        probability <- paste('Pr(X < ',round(input$threshold4,2),')=',sep='')
+      } else {
+        prob <- 1 - pnorm(input$threshold4,mean(mean(z,na.rm=TRUE)),sd=sd(z,na.rm=TRUE))
+        probability <- paste('Pr(X >= ',round(input$threshold4,2),')=',sep='')
+      }
+      main <- paste(input$location4,probability,round(100*prob,2),'%')
+      hist(z,breaks=breaks,main=main,new=FALSE,freq=FALSE,col='grey')
+      X <- seq(-zx,zx,by=0.05)
+      lines(X,dnorm(X,mean(mean(z,na.rm=TRUE)),sd=sd(z,na.rm=TRUE)),
+            lwd=5,col=rgb(0.5,0,0,0.3))
+      if (as.character(input$direction4) == "Lower") {
+        Xless <- X[X <= input$threshold4]
+        polygon(c(Xless,max(Xless),min(Xless)),
+                c(dnorm(Xless,mean(mean(z,na.rm=TRUE)),sd=sd(z,na.rm=TRUE)),0,0),
+                col=rgb(1,0,0,0.2))
+      } else {
+        Xmore <- X[X >= input$threshold4]
+        polygon(c(max(Xmore),min(Xmore),Xmore),
+                c(0,0,dnorm(X[X >= input$threshold4],mean(mean(z,na.rm=TRUE)),sd=sd(z,na.rm=TRUE))),
+                col=rgb(1,0,0,0.2))
+      }
     }
-    z <- c(as.numeric(subset(z,it=it)))
-    zx <- ceiling(max(c(abs(z),abs(input$threshold4)),na.rm=TRUE))+1
-    breaks <- switch(input$param4,
-                     "Temperature" = seq(-zx,zx,by=0.5),
-                     "Wet-day freq." = seq(0,1,by=0.02),
-                     "Precip. intensity" = seq(0,zx,by=0.2),
-                     "Precip. sum"=seq(0,zx,by=10))
-    if (as.character(input$direction4) == "Lower") {
-      prob <- pnorm(input$threshold4,mean(mean(z,na.rm=TRUE)),sd=sd(z,na.rm=TRUE)) 
-      probability <- paste('Pr(X < ',round(input$threshold4,2),')=',sep='')
-    } else {
-      prob <- 1 - pnorm(input$threshold4,mean(mean(z,na.rm=TRUE)),sd=sd(z,na.rm=TRUE))
-      probability <- paste('Pr(X >= ',round(input$threshold4,2),')=',sep='')
-    }
-    main <- paste(input$location4,probability,round(100*prob,2),'%')
-    hist(z,breaks=breaks,main=main,new=FALSE,freq=FALSE,col='grey')
-    X <- seq(-zx,zx,by=0.05)
-    lines(X,dnorm(X,mean(mean(z,na.rm=TRUE)),sd=sd(z,na.rm=TRUE)),
-          lwd=5,col=rgb(0.5,0,0,0.3))
-    if (as.character(input$direction4) == "Lower") {
-      Xless <- X[X <= input$threshold4]
-      polygon(c(Xless,max(Xless),min(Xless)),
-              c(dnorm(Xless,mean(mean(z,na.rm=TRUE)),sd=sd(z,na.rm=TRUE)),0,0),
-              col=rgb(1,0,0,0.2))
-    } else {
-      Xmore <- X[X >= input$threshold4]
-      polygon(c(max(Xmore),min(Xmore),Xmore),
-              c(0,0,dnorm(X[X >= input$threshold4],mean(mean(z,na.rm=TRUE)),sd=sd(z,na.rm=TRUE))),
-              col=rgb(1,0,0,0.2))
-    }
-    })
+    },height=function(){0.8*session$clientData$output_plot.prob_width} )#600})
   
   ## Unfinished!  
   output$map.quality <- renderPlot({ 
@@ -420,25 +433,34 @@ shinyServer(function(input, output) {
       im <- is.element(gcmnames,input$im)
       zz <- subset(zz,is=is,im=im)
       z <- as.station(zz)
-      if (as.character(input$quality6)=="trend") 
-        score<- unlist(lapply(z,trendscore)) else
-      if (as.character(input$quality6)=="spread") 
-        score<- unlist(lapply(z,varscore))  
+      if (as.character(input$quality6)=="trend") {
+        score <- unlist(lapply(z,trendscore)) 
+      } else if (as.character(input$quality6)=="spread") {
+        score<- unlist(lapply(z,varscore))
+      }
       dim(score) <- c(3,length(z))
       lons <- lon(zz$pca); lats <- lat(zz$pca)
     } else {
       ## Pre-calculated scores for whole ensemble
-      if (as.character(input$quality6)=="trend") score <- quality$trend[[li]] else
-                                                 score <- quality$range[[li]]
-      if (param==0) {lons <- lon(quality$t2m); lats <- lat(quality$t2m)} else
-                    {lons <- lon(quality$pre); lats <- lat(quality$pre)}
-       ixy <- (lons >= is$lon[1]) & (lons <= is$lon[2]) &
+      if (as.character(input$quality6)=="trend") {
+        score <- quality$trend[[li]]
+      } else {
+        score <- quality$range[[li]]
+      }
+      if (param==0) {
+        lons <- lon(quality$t2m); lats <- lat(quality$t2m)
+      } else {
+        lons <- lon(quality$pre); lats <- lat(quality$pre)
+      }
+      ixy <- (lons >= is$lon[1]) & (lons <= is$lon[2]) &
              (lats >= is$lat[1]) & (lats <= is$lat[2])
       score <- score[,ixy]; lons <- lons[ixy]; lats <- lats[ixy]
     }
-    main <- paste('Quality:',input$quality6,' for ',input$season6,input$param6,' (',sum(im),input$rcp6,' runs)',sep='')
+    main <- paste('Quality:',input$quality6,' for ',
+                  input$season6,input$param6,' (',sum(im),input$rcp6,' runs)',sep='')
     plot(lons,lats,xlab='',ylab='',main=main,lwd=2,cex=2,pch=19,col='grey80')
     grid()
+
     data(geoborders)
     lines(geoborders,col='grey')
    
@@ -454,8 +476,9 @@ shinyServer(function(input, output) {
     text(0,1,'[10,90]',col='white',cex=0.8,pos=1)
     text(0.50,1,'[05,95]',col='white',cex=0.8,pos=1)
     text(1,1,'outside',col='white',cex=0.8,pos=1)
+    print("almost done")
     par(par0)
-    },height=function(){600})
+    },height=function(){0.8*session$clientData$output_map.quality_width} )#600})
   
   ## Show thedifference between one selected model and the mean of the rest of the ensemble.
   output$plot1model <- renderPlot({ 
@@ -482,32 +505,36 @@ shinyServer(function(input, output) {
                   season,'/',input$rcp1,': ',it[1],'-',it[2],sep='')
     map(y1,main=main,new=FALSE)
     #plot(rnorm(100),main=main)
-  }, height=function(){600})
+   },height=function(){0.8*session$clientData$output_plot1model_width} )#600})
   
-  output$plotndays <- renderPlot({ 
-    season <- switch(tolower(as.character(input$direction8)),
-                     "cold winter days"=1,"hot summer days"=3)
-    rcp <- switch(tolower(as.character(input$rcp8)),
-                  'rcp4.5'=1,'rcp2.6'=2,'rcp8.5'=3)
-    li <- (rcp-1)*4+season
-    gcnames <- names(Z4[[li]])[-c(1,2,length(Z4[[1]]))]
-    im <- is.element(gcmnames,input$im)
-    is <- srt.t2m[is.element(t2m.locs,as.character(input$location8))]
-    is0 <- (1:length(loc(t2m)))[is.element(loc(t2m),as.character(input$location8))]
-    zz <- Z4[[li]]; zz$eof <- NULL;
-    class(zz) <- c('dsensemble','pca','season','list')
-    lons <- lon(zz$pca); lats <- lat(zz$pca); alts <- alt(zz$pca)
-    zz <- subset(zz,im=im,is=is)
-    z <- as.station(zz)
-    if (as.character(input$direction8) == "Hot summer days") {
-      nds <- hotsummerdays(subset(t2m,is=is0),dse=z,
-                           it=c('djf','mam','jja','son')[season],threshold=input$threshold8,plot=FALSE)
-    } else {
-      nds <- coldwinterdays(subset(t2m,is=is0),dse=z,
-                            it=c('djf','mam','jja','son')[season],threshold=input$threshold8,plot=FALSE)
+  output$plotndays <- renderPlot({
+    if(!is.null(input$threshold8)) {
+      season <- switch(tolower(as.character(input$direction8)),
+                       "cold winter days"=1,"hot summer days"=3)
+      rcp <- switch(tolower(as.character(input$rcp8)),
+                    'rcp4.5'=1,'rcp2.6'=2,'rcp8.5'=3)
+      li <- (rcp-1)*4+season
+      gcnames <- names(Z4[[li]])[-c(1,2,length(Z4[[1]]))]
+      im <- is.element(gcmnames,input$im)
+      is <- srt.t2m[is.element(t2m.locs,as.character(input$location8))]
+      is0 <- (1:length(loc(t2m)))[is.element(loc(t2m),as.character(input$location8))]
+      zz <- Z4[[li]]; zz$eof <- NULL;
+      class(zz) <- c('dsensemble','pca','season','list')
+      lons <- lon(zz$pca); lats <- lat(zz$pca); alts <- alt(zz$pca)
+      zz <- subset(zz,im=im,is=is)
+      z <- as.station(zz)
+      if (as.character(input$direction8) == "Hot summer days") {
+        nds <- hotsummerdays(subset(t2m,is=is0),dse=z,
+                             it=c('djf','mam','jja','son')[season],
+                             threshold=input$threshold8,plot=FALSE)
+      } else {
+        nds <- coldwinterdays(subset(t2m,is=is0),dse=z,
+                              it=c('djf','mam','jja','son')[season],
+                              threshold=input$threshold8,plot=FALSE)
+      }
+      plot(nds)
     }
-    plot(nds)
-  })
+  },height=function(){0.5*session$clientData$output_plotndays_width} )#600})
   
   output$use.stats <- renderText({
     txt <- paste(countview$i,"actions")
