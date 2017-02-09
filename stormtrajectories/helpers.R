@@ -8,6 +8,7 @@ map.fancy <- function(Y,param=NULL,xlim=c(-80,40),ylim=c(30,90)) {
              show=FALSE,breaks=breaks)
   cb.cyclones <- select.cb(param=param)
   alpha <- select.alpha(dim(Y)[1])
+  dev.new(width=5.5,height=5)
   par(mar=c(5.1, 4.1, 2.5, 2.5), mgp=c(2,0.5,0))
   par(bty="n", fig=c(0,1,0.1,1))
   map(etopo5,
@@ -15,11 +16,12 @@ map.fancy <- function(Y,param=NULL,xlim=c(-80,40),ylim=c(30,90)) {
       type="fill",xlim=xlim,ylim=ylim,
       xaxt="n",yaxt="n")
   if(dim(Y)[1]>0) {
-    map(Y,add=TRUE,new=FALSE,type="colors",lwd=4,cex=1.5,
+    map(Y,add=TRUE,new=FALSE,type=c("colors","trajectory"),
+      lwd=3,cex=1.5,
       xlim=xlim,ylim=ylim,xaxt="n",yaxt="n",alpha=alpha,
       param=param,colbar=cb.cyclones,show.subset=FALSE,
-      col="burlywood1")
-    mtext(select.unit(param),side=1,outer=FALSE,padj=-4,adj=0.5,cex=1.4)
+      col="burlywood1",projection="lonlat")
+    mtext(select.unit(param),side=1,outer=FALSE,padj=-4,adj=0.5,cex=1)
   }
 }
     
