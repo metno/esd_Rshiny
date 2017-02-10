@@ -8,6 +8,7 @@ library(shiny)
 library(esd)
 #if ('RgoogleMaps' %in% installed.packages()) install.packages('RgoogleMaps')
 library(RgoogleMaps)
+source("~/git/esd/R/plot.R")
 
 ## Preparations - grid the station data and reduce the size of the data by keeping only
 ## the most important PCA modes.
@@ -292,6 +293,7 @@ shinyServer(function(input, output, session) {
       main <- paste(is,li,sum(im),index(z)[1],paste(class(z),collapse='-'))
       #plot(z,main=main,obs.show=FALSE,target.show=FALSE,legend.show=FALSE,new=FALSE)
       plot(z,main=main,target.show=FALSE,legend.show=FALSE,new=FALSE,
+           xrange=c(2,35),yrange=c(53,75),
            map.show=TRUE,usegooglemap=FALSE,verbose=FALSE)
     }
     #index(y) <- year(y)
