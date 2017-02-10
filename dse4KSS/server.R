@@ -322,7 +322,8 @@ shinyServer(function(input, output, session) {
     zz <- subset(zz,it=it,im=im,is=is)
     z <- as.station(zz)
     main <- paste(input$param3,season,input$rcp3,li,it[1],it[2],length(is),sum(im))
-    plot(z,main=main,new=FALSE,fig=c(0,1,0,0.8),usegooglemap=FALSE,verbose=FALSE)
+    plot(z,main=main,new=FALSE,fig=c(0,1,0,0.8),mar=c(4.5,4.8,0.75,0.5),
+         usegooglemap=FALSE,verbose=FALSE)
     grid()
     },height=function(){0.65*session$clientData$output_plot.multi_width} )#600})
   
