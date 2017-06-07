@@ -1,6 +1,5 @@
 library(shiny)
 library(esd)
-source("~/git/esd/R/plot.R")
 
 # Choices for drop-downs
 # Show a tabset that includes a plot, summary, and
