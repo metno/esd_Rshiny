@@ -7,7 +7,7 @@
 library(shiny)
 library(esd)
 #if ('RgoogleMaps' %in% installed.packages()) install.packages('RgoogleMaps')
-library(RgoogleMaps)
+#library(RgoogleMaps)
 
 ## Preparations - grid the station data and reduce the size of the data by keeping only
 ## the most important PCA modes.
@@ -127,7 +127,7 @@ shinyServer(function(input, output) {
     z <- as.station(zz,im=im)
     main <- paste('ensemble of',sum(im),'model runs with',
                   sum(is.finite(coredata(z))),index(z)[1],'valid data')
-    plot(z,main=main,target.show=FALSE,new=FALSE)
+    plot(z,main=main,target.show=FALSE,new=FALSE,usegooglemap=FALSE)
     #plot(rnorm(100),main=main)
   }, height=function(){600})
   
@@ -152,7 +152,7 @@ shinyServer(function(input, output) {
     z <- as.station(zz)
     main <- paste('Ensemble mean of',input$param3,'for',season,'and',
                   toupper(input$rcp3),'scenario and',sum(im),'model runs')
-    plot(z,main=main,new=FALSE)
+    plot(z,main=main,new=FALSE,usegooglemap=FALSE)
     },height=function(){600})
   
   ## Show a map of evaluation scores
