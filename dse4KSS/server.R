@@ -194,7 +194,7 @@ shinyServer(function(input, output, session) {
                   li <- (rcp-1)*4+season + 12
     im <- is.element(gcmnames,input$im)
     gcnames <<- names(Z4[[li]])[-c(1,2,length(Z4[[1]]))]
-    main <- paste('Downscaled',FUN,input$season1,tolower(input$param1),'for',it[1],'-',it[2],
+    main <- paste('Downscaled',FUN,tolower(input$season1),tolower(input$param1),'for',it[1],'-',it[2],
                   'following',toupper(input$rcp1),'based on',sum(im),'model runs')
     
     ## Check if thetotal precipitation needs to be estimated:
