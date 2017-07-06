@@ -290,6 +290,6 @@ tabPanel("Quality",  ## Unfinished!
                 a("GitHub.",href="https://github.com/metno/esd_Rshiny/tree/master/dse4KSS/data"),
                 h2("Documentation"),
                 "Further description of this kind of tool is provided in ",
-                a("Benestad et al. (2017)",ref="http://www.sciencedirect.com/science/article/pii/S2405880717300043"))
+                a("Benestad et al. (2017)",href="http://www.sciencedirect.com/science/article/pii/S2405880717300043"))
          )
 )
