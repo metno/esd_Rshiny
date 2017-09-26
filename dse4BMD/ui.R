@@ -8,7 +8,7 @@ library(esd)
 Z4 <- list()
 load('data/dse.BMD.tmax.rcp45.djf.eof.rda')
 Z4$tas <- Z
-load('data/dse.BMD.mu.rcp45.djf.eof.rda')
+load('data/dse.BMD.mu.rcp45.jja.eof.rda')
 Z4$pre <- Z
 t2m.locs <- sort(loc(Z4[[1]]$pca))
 pre.locs <- sort(loc(Z4[[2]]$pca))

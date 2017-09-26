@@ -6,7 +6,7 @@ library(esd)
 # table view of the generated distribution
 
 Z4 <- list()
-load('data/dse.claris.tx.rcp45.djf.eof.rda')
+load('data/dse.claris.tn.rcp45.djf.eof.rda')
 Z4$tas <- Z
 load('data/dse.claris.mu.rcp45.djf.eof.rda')
 Z4$pre <- Z
