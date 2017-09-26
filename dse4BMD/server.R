@@ -15,7 +15,7 @@ library(esd)
 Z4 <- list()
 load('data/dse.BMD.tmax.rcp45.djf.eof.rda')
 Z4$tmax.djf.45 <- Z
-load('data/dse.BMD.tmax.rcp45.mam.eof.rda')
+#load('data/dse.BMD.tmax.rcp45.mam.eof.rda')
 Z4$tmax.mam.45 <- Z
 load('data/dse.BMD.tmax.rcp45.jja.eof.rda')
 Z4$tmax.jja.45 <- Z
@@ -24,7 +24,7 @@ Z4$tmax.son.45 <- Z
 
 load('data/dse.BMD.tmax.rcp26.djf.eof.rda')
 Z4$tmax.djf.26 <- Z
-load('data/dse.BMD.tmax.rcp26.mam.eof.rda')
+#load('data/dse.BMD.tmax.rcp26.mam.eof.rda')
 Z4$tmax.mam.26 <- Z
 load('data/dse.BMD.tmax.rcp26.jja.eof.rda')
 Z4$tmax.jja.26 <- Z
@@ -33,7 +33,7 @@ Z4$tmax.son.26 <- Z
 
 load('data/dse.BMD.tmax.rcp85.djf.eof.rda')
 Z4$tmax.djf.85 <- Z
-load('data/dse.BMD.tmax.rcp85.mam.eof.rda')
+#load('data/dse.BMD.tmax.rcp85.mam.eof.rda')
 Z4$tmax.mam.85 <- Z
 load('data/dse.BMD.tmax.rcp85.jja.eof.rda')
 Z4$tmax.jja.85 <- Z
@@ -69,7 +69,7 @@ load('data/dse.BMD.fw.rcp85.son.eof.rda')
 Z4$fw.son.85 <- Z
 
 ## Wet-day mean precipitation
-load('data/dse.BMD.mu.rcp45.djf.eof.rda')
+#load('data/dse.BMD.mu.rcp45.djf.eof.rda')
 Z4$mu.djf.45 <- Z
 load('data/dse.BMD.mu.rcp45.mam.eof.rda')
 Z4$mu.mam.45 <- Z
@@ -78,7 +78,7 @@ Z4$mu.jja.45 <- Z
 load('data/dse.BMD.mu.rcp45.son.eof.rda')
 Z4$mu.son.45 <- Z
 
-load('data/dse.BMD.mu.rcp26.djf.eof.rda')
+load('data/dse.BMD.mu.rcp26.mam.eof.rda')
 Z4$mu.djf.26 <- Z
 load('data/dse.BMD.mu.rcp26.mam.eof.rda')
 Z4$mu.mam.26 <- Z
@@ -87,7 +87,7 @@ Z4$mu.jja.26 <- Z
 load('data/dse.BMD.mu.rcp26.son.eof.rda')
 Z4$mu.son.26 <- Z
 
-load('data/dse.BMD.mu.rcp85.djf.eof.rda')
+load('data/dse.BMD.mu.rcp85.mam.eof.rda')
 Z4$mu.djf.85 <- Z
 load('data/dse.BMD.mu.rcp85.mam.eof.rda')
 Z4$mu.mam.85 <- Z
@@ -96,12 +96,12 @@ Z4$mu.jja.85 <- Z
 load('data/dse.BMD.mu.rcp85.son.eof.rda')
 Z4$mu.son.85 <- Z
 
-load('data/tmax.nordic.rda')
+load('data/bmd.rda')
 t2m <- Y
-load('data/rr.nordic.rda')
+load('data/bmd.rda')
 rr <- Y
 rm('Y')
-load('data/quality.rda')
+#load('data/quality.rda')
 srt.t2m <- order(loc(Z4[[1]]$pca))
 srt.pre <- order(loc(Z4[[13]]$pca))                 
 tmax.locs <- sort(loc(Z4[[1]]$pca))

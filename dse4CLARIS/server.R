@@ -96,12 +96,12 @@ Z4$mu.jja.85 <- Z
 load('data/dse.claris.mu.rcp85.son.eof.rda')
 Z4$mu.son.85 <- Z
 
-load('data/tx.nordic.rda')
+load('data/claris.Tx.rda')
 t2m <- Y
-load('data/rr.nordic.rda')
+load('data/claris.Pr.rda')
 rr <- Y
 rm('Y')
-load('data/quality.rda')
+#load('data/quality.rda')
 srt.t2m <- order(loc(Z4[[1]]$pca))
 srt.pre <- order(loc(Z4[[13]]$pca))                 
 tx.locs <- sort(loc(Z4[[1]]$pca))

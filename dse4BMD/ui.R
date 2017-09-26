@@ -8,14 +8,14 @@ library(esd)
 Z4 <- list()
 load('data/dse.BMD.tmax.rcp45.djf.eof.rda')
 Z4$tas <- Z
-load('data/dse.BMD.mu.rcp45.djf.eof.rda')
+load('data/dse.BMD.mu.rcp45.jja.eof.rda')
 Z4$pre <- Z
 t2m.locs <- sort(loc(Z4[[1]]$pca))
 pre.locs <- sort(loc(Z4[[2]]$pca))
 gcmnames <<- names(Z4[[1]])[-c(1,2,length(Z4[[1]]))]
 locs2 <- t2m.locs
 
-navbarPage("The Nordic region climate atlas",
+navbarPage("Bangladesh climate atlas",
     tabPanel("Maps", 
              plotOutput("maps", width = "100%", height = "80%"),
              column(3,
@@ -32,11 +32,11 @@ navbarPage("The Nordic region climate atlas",
              column(3,
                     sliderInput("lon1", 
                                 label = "Longitudes",
-                                min = 0, max = 30, value = c(0, 30))),
+                                min = 80, max = 100, value = c(80, 100))),
              column(3,
                     sliderInput("lat1", 
                                 label = "Latitudes",
-                                min = 55, max = 72, value = c(55, 72))),
+                                min = 20, max = 30, value = c(20, 30))),
              column(3,
                     sliderInput("dates1", "Years", 
                                 min=1900, max=2099, value= c(2050,2050),sep="")),
@@ -72,11 +72,11 @@ navbarPage("The Nordic region climate atlas",
             column(3,
                     sliderInput("lon3", 
                              label = "Longitudes",
-                             min = 0, max = 30, value = c(0, 30))),
+                             min = 80, max = 100, value = c(80, 100))),
             column(3,
                    sliderInput("lat3", 
                              label = "Latitudes",
-                             min = 55, max = 72, value = c(55, 72))),
+                             min = 20, max = 30, value = c(20, 30))),
              column(3,
                    sliderInput("alt3", 
                              label = "Elevation",
@@ -163,11 +163,11 @@ tabPanel("Single model",  ## Unfinished!
          column(3,
                 sliderInput("lon7", 
                             label = "Longitudes",
-                            min = 0, max = 30, value = c(0, 30))),
+                            min = 80, max = 100, value = c(80, 100))),
          column(3,
                 sliderInput("lat7", 
                             label = "Latitudes",
-                            min = 55, max = 72, value = c(55, 72))),
+                            min = 20, max = 30, value = c(55, 72))),
          column(3,
                 sliderInput("dates7", 
                             "Years", 
@@ -227,11 +227,11 @@ tabPanel("Quality",  ## Unfinished!
              column(3,
                     sliderInput("lon6", 
                                 label = "Longitudes",
-                                min = 0, max = 30, value = c(0, 30))),
+                                min = 80, max = 100, value = c(80, 100))),
              column(3,
                     sliderInput("lat6", 
                                 label = "Latitudes",
-                                min = 55, max = 72, value = c(55, 72)))
+                                min = 20, max = 30, value = c(20, 30)))
     ),
     tabPanel("Settings", ## Unfinished! Aslo include settings for maps: text
              column(2,
