@@ -15,7 +15,7 @@ pre.locs <- sort(loc(Z4[[2]]$pca))
 gcmnames <<- names(Z4[[1]])[-c(1,2,length(Z4[[1]]))]
 locs2 <- t2m.locs
 
-navbarPage("The Nordic region climate atlas",
+navbarPage("Argentina climate atlas",
     tabPanel("Maps", 
              plotOutput("maps", width = "100%", height = "80%"),
              column(3,

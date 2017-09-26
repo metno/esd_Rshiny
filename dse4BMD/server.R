@@ -15,7 +15,7 @@ library(esd)
 Z4 <- list()
 load('data/dse.BMD.tmax.rcp45.djf.eof.rda')
 Z4$tmax.djf.45 <- Z
-load('data/dse.BMD.tmax.rcp45.mam.eof.rda')
+#load('data/dse.BMD.tmax.rcp45.mam.eof.rda')
 Z4$tmax.mam.45 <- Z
 load('data/dse.BMD.tmax.rcp45.jja.eof.rda')
 Z4$tmax.jja.45 <- Z
@@ -24,7 +24,7 @@ Z4$tmax.son.45 <- Z
 
 load('data/dse.BMD.tmax.rcp26.djf.eof.rda')
 Z4$tmax.djf.26 <- Z
-load('data/dse.BMD.tmax.rcp26.mam.eof.rda')
+#load('data/dse.BMD.tmax.rcp26.mam.eof.rda')
 Z4$tmax.mam.26 <- Z
 load('data/dse.BMD.tmax.rcp26.jja.eof.rda')
 Z4$tmax.jja.26 <- Z
@@ -33,7 +33,7 @@ Z4$tmax.son.26 <- Z
 
 load('data/dse.BMD.tmax.rcp85.djf.eof.rda')
 Z4$tmax.djf.85 <- Z
-load('data/dse.BMD.tmax.rcp85.mam.eof.rda')
+#load('data/dse.BMD.tmax.rcp85.mam.eof.rda')
 Z4$tmax.mam.85 <- Z
 load('data/dse.BMD.tmax.rcp85.jja.eof.rda')
 Z4$tmax.jja.85 <- Z
@@ -69,8 +69,8 @@ load('data/dse.BMD.fw.rcp85.son.eof.rda')
 Z4$fw.son.85 <- Z
 
 ## Wet-day mean precipitation
-load('data/dse.BMD.mu.rcp45.mam.eof.rda')
-Z4$mu.djf.45 <- Z*NA
+#load('data/dse.BMD.mu.rcp45.djf.eof.rda')
+Z4$mu.djf.45 <- Z
 load('data/dse.BMD.mu.rcp45.mam.eof.rda')
 Z4$mu.mam.45 <- Z
 load('data/dse.BMD.mu.rcp45.jja.eof.rda')
@@ -79,7 +79,7 @@ load('data/dse.BMD.mu.rcp45.son.eof.rda')
 Z4$mu.son.45 <- Z
 
 load('data/dse.BMD.mu.rcp26.mam.eof.rda')
-Z4$mu.djf.26 <- Z*NA
+Z4$mu.djf.26 <- Z
 load('data/dse.BMD.mu.rcp26.mam.eof.rda')
 Z4$mu.mam.26 <- Z
 load('data/dse.BMD.mu.rcp26.jja.eof.rda')
@@ -88,7 +88,7 @@ load('data/dse.BMD.mu.rcp26.son.eof.rda')
 Z4$mu.son.26 <- Z
 
 load('data/dse.BMD.mu.rcp85.mam.eof.rda')
-Z4$mu.djf.85 <- Z*NA
+Z4$mu.djf.85 <- Z
 load('data/dse.BMD.mu.rcp85.mam.eof.rda')
 Z4$mu.mam.85 <- Z
 load('data/dse.BMD.mu.rcp85.jja.eof.rda')
