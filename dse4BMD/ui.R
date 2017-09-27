@@ -134,7 +134,7 @@ navbarPage("Bangladesh climate atlas",
                                 choices = c("Lower", "Higher"),
                                 selected = "Lower")),
              column(2, 
-                    numericInput("threshold4", "Threshold", 0.0, min = -50.0, max = 50.0))
+                    numericInput("threshold4", "Threshold", 30.0, min = -10.0, max = 60.0))
              ),
 
 tabPanel("Single model",  ## Unfinished!
@@ -167,7 +167,7 @@ tabPanel("Single model",  ## Unfinished!
          column(3,
                 sliderInput("lat7", 
                             label = "Latitudes",
-                            min = 20, max = 30, value = c(55, 72))),
+                            min = 20, max = 30, value = c(20, 30))),
          column(3,
                 sliderInput("dates7", 
                             "Years", 
