@@ -1,6 +1,7 @@
 # define the back-end
 
 shinyServer(function(input, output, session) {
+  
   #countview <- reactiveValues(i = 1)
   
   ## Try to get the location names to depend on whether temperature of precipitation stations
@@ -359,76 +360,76 @@ shinyServer(function(input, output, session) {
   #map(y,main=main,FUN="mean",new=FALSE)
   
   ## Plot individual station
-  output$plot <- renderPlot({
-    if(!is.null(input$location2)) {
-      season <- switch(tolower(as.character(input$season2)),
-                       'winter'=1,'spring'=2,'summer'=3,'autumn'=4)
-      rcp <- switch(tolower(as.character(input$rcp2)),
-                    'rcp4.5'=1,'rcp2.6'=2,'rcp8.5'=3)
-      param <- switch(tolower(as.character(input$param2)),
-                      'temperature'=0,'wet-day freq.'=12,'precip. intensity'=24,
-                      'precip. sum'=-1)
-      #if (param==0) obs <- t2m else obs <- rr
-      fun <- switch(tolower(as.character(input$param2)),
-                    'temperature'='mean','wet-day freq.'='wetfreq','precip. intensity'='wetmean')
-      if (param>=0) {
-        li <- (rcp-1)*4+season + param
-      } else {
-        li <- (rcp-1)*4+season + 12
-      }
-      
-      locs2 <- switch(tolower(as.character(input$param2)),
-                      "temperature" = t2m.locs,
-                      "wet-day freq." = pre.locs,
-                      "precip. intensity" = pre.locs,
-                      "precip. sum"=pre.locs)
-      
-      if (param==0) {
-        is <- srt.t2m[is.element(locs2,as.character(input$location2))]
-      } else {
-        is <- srt.pre[is.element(locs2,as.character(input$location2))]
-      }
-      
-      gcmnames <- names(Z4[[li]])[-c(1,2,length(Z4[[1]]))]
-      
-      zz <- Z4[[li]]; zz$eof <- NULL;
-      ## Reduce the matrix size and pick one station before the recovery of the original format
-      zz$pca <- subset(zz$pca,is=is)
-      im <- is.element(gcmnames,input$im)
-      z <- as.station(zz,im=im,verbose=FALSE)
-      if (param<0) {
-        z1 <- z
-        zz2 <- Z4[[li+12]]; zz2$eof <- NULL;
-        
-        ## Reduce the matrix size and pick one station before the recovery of the original format
-        zz2$pca <- subset(zz2$pca,is=is)
-        z2 <- as.station(zz2,im=im)
-        z <- 90*z1*z2
-        z <- attrcp(z2,z)
-        attr(z,'station') <- 90*attr(z1,'station')*attr(z2,'station')
-        attr(z,'station') <- attrcp(attr(z1,'station'),attr(z,'station'))
-        class(attr(z,'station')) <- class(attr(z1,'station'))
-        attr(z,'varible') <- 'precip'
-        attr(z,'unit') <- 'mm/season'
-        attr(attr(z,'station'),'varible') <- 'precip'
-        attr(attr(z,'station'),'unit') <- 'mm/season'
-        class(z) <- class(z2)
-        rm('z1','z2')
-      }
-      #y <- subset(obs,is=is)
-      #y <- subset(as.4seasons(y,FUN=fun),it=c('djf','mam','jja','son')[season])
-      #main <- paste(is,li,sum(im),sum(is.finite(coredata(z))),index(z)[1],paste(class(z),collapse='-'))
-      main <- paste(is,li,sum(im),index(z)[1],paste(class(z),collapse='-'))
-      #plot(z,main=main,obs.show=FALSE,target.show=FALSE,legend.show=FALSE,new=FALSE)
-      plot(z,main=main,target.show=FALSE,legend.show=FALSE,new=FALSE,
-           xrange=c(2,35),yrange=c(53,75),
-           map.show=TRUE,usegooglemap=TRUE,verbose=FALSE)
-    }
-    #index(y) <- year(y)
-    #lines(y,type='b',lwd=3,cex=1.2)
-    #plot(rnorm(100),main=main)
-  }, height=function(){0.9*session$clientData$output_plot_width},width = 'auto') #600}) 
-  
+  # output$plot <- renderPlot({
+  #   if(!is.null(input$location2)) {
+  #     season <- switch(tolower(as.character(input$season2)),
+  #                      'winter'=1,'spring'=2,'summer'=3,'autumn'=4)
+  #     rcp <- switch(tolower(as.character(input$rcp2)),
+  #                   'rcp4.5'=1,'rcp2.6'=2,'rcp8.5'=3)
+  #     param <- switch(tolower(as.character(input$param2)),
+  #                     'temperature'=0,'wet-day freq.'=12,'precip. intensity'=24,
+  #                     'precip. sum'=-1)
+  #     #if (param==0) obs <- t2m else obs <- rr
+  #     fun <- switch(tolower(as.character(input$param2)),
+  #                   'temperature'='mean','wet-day freq.'='wetfreq','precip. intensity'='wetmean')
+  #     if (param>=0) {
+  #       li <- (rcp-1)*4+season + param
+  #     } else {
+  #       li <- (rcp-1)*4+season + 12
+  #     }
+  #     
+  #     locs2 <- switch(tolower(as.character(input$param2)),
+  #                     "temperature" = t2m.locs,
+  #                     "wet-day freq." = pre.locs,
+  #                     "precip. intensity" = pre.locs,
+  #                     "precip. sum"=pre.locs)
+  #     
+  #     if (param==0) {
+  #       is <- srt.t2m[is.element(locs2,as.character(input$location2))]
+  #     } else {
+  #       is <- srt.pre[is.element(locs2,as.character(input$location2))]
+  #     }
+  #     
+  #     gcmnames <- names(Z4[[li]])[-c(1,2,length(Z4[[1]]))]
+  #     
+  #     zz <- Z4[[li]]; zz$eof <- NULL;
+  #     ## Reduce the matrix size and pick one station before the recovery of the original format
+  #     zz$pca <- subset(zz$pca,is=is)
+  #     im <- is.element(gcmnames,input$im)
+  #     z <- as.station(zz,im=im,verbose=FALSE)
+  #     if (param<0) {
+  #       z1 <- z
+  #       zz2 <- Z4[[li+12]]; zz2$eof <- NULL;
+  #       
+  #       ## Reduce the matrix size and pick one station before the recovery of the original format
+  #       zz2$pca <- subset(zz2$pca,is=is)
+  #       z2 <- as.station(zz2,im=im)
+  #       z <- 90*z1*z2
+  #       z <- attrcp(z2,z)
+  #       attr(z,'station') <- 90*attr(z1,'station')*attr(z2,'station')
+  #       attr(z,'station') <- attrcp(attr(z1,'station'),attr(z,'station'))
+  #       class(attr(z,'station')) <- class(attr(z1,'station'))
+  #       attr(z,'varible') <- 'precip'
+  #       attr(z,'unit') <- 'mm/season'
+  #       attr(attr(z,'station'),'varible') <- 'precip'
+  #       attr(attr(z,'station'),'unit') <- 'mm/season'
+  #       class(z) <- class(z2)
+  #       rm('z1','z2')
+  #     }
+  #     #y <- subset(obs,is=is)
+  #     #y <- subset(as.4seasons(y,FUN=fun),it=c('djf','mam','jja','son')[season])
+  #     #main <- paste(is,li,sum(im),sum(is.finite(coredata(z))),index(z)[1],paste(class(z),collapse='-'))
+  #     main <- paste(is,li,sum(im),index(z)[1],paste(class(z),collapse='-'))
+  #     #plot(z,main=main,obs.show=FALSE,target.show=FALSE,legend.show=FALSE,new=FALSE)
+  #     plot(z,main=main,target.show=FALSE,legend.show=FALSE,new=FALSE,
+  #          xrange=c(2,35),yrange=c(53,75),
+  #          map.show=TRUE,usegooglemap=TRUE,verbose=FALSE)
+  #   }
+  #   #index(y) <- year(y)
+  #   #lines(y,type='b',lwd=3,cex=1.2)
+  #   #plot(rnorm(100),main=main)
+  # }, height=function(){0.9*session$clientData$output_plot_width},width = 'auto') #600}) 
+  # 
   ## Plot ensemble statistics for multiple-stations
   output$plot.multi <- renderPlot({ 
     it <- range(as.numeric(input$dates3))
@@ -683,7 +684,12 @@ shinyServer(function(input, output, session) {
     return(gety1('Autumn',input$dates7,input$lon7,input$lat7,input$rcp7,input$param7,input$im,input$datesref))
   })
   
-  observe(priority = 0, {
+  
+ 
+  
+  # REnder the map
+  zmap.reactive <- reactive({
+    
     ## browser()
     season <- switch(tolower(as.character(input$season7)),
                      'annual (all seasons)'='ann','winter (djf)'='djf','spring (mam)'='mam','summer (jja)'='jja','autumn (son)'='son')
@@ -709,11 +715,16 @@ shinyServer(function(input, output, session) {
       else if (season == 'son')
         zmap <- ysm4()
     }
+    return(zmap)
+  })
+  
+  observe(priority = 0, {
+    zmap <- zmap.reactive()
     output$map0sm <- renderLeaflet({
     ## browser()
     print('zmap contains ...')
       str(zmap)
-      cat('ObserveEvent','PARAM',input$param7,'SEASON', season,'RCP',input$rcp7,'SM',input$im)
+      cat('ObserveEvent','PARAM',input$param7,'SEASON', input$season7,'RCP',input$rcp7,'SM',input$im)
       cat(sep = '\n')
       x <- attr(zmap,'longitude')
       y <- attr(zmap,'latitude')
@@ -731,54 +742,201 @@ shinyServer(function(input, output, session) {
         rng <- round(range(r@data@values,na.rm=TRUE),digits = 1)
         breaks <- c(0,max(rng))
         #breaks <- seq(-5,5,0.5)
-        leg.title <- "Absolute change [C]"
+        leg.title <- "Change [C]"
       } else if (input$param7 == 'Precip. sum') {
         rev <- FALSE
         col <- 'precip'
         breaks <- seq(-50,50,5)
-        leg.title <- 'Relative change [%]'
+        leg.title <- 'Change [%]'
       } else if (input$param7 == 'Wet-day freq.') {
         rev <- TRUE
         col <- 't2m'
         rng <- round(range(r@data@values,na.rm=TRUE),digits = 0)
         breaks <- c(-max(abs(rng)),max(abs(rng)))
         #breaks <- seq(0,1,0.05)
-        leg.title <- 'Relative change  [%]'
+        leg.title <- 'Change [%]'
       } else if (input$param7 == 'Precip. intensity') {
         rev <- FALSE
         col <- 'precip'
         rng <- round(range(r@data@values,na.rm=TRUE),digits = 1)
         breaks <- c(-max(abs(rng)),max(abs(rng))) #seq(0,20,0.05)
-        leg.title <- 'Relative change [%]'
+        leg.title <- 'Change [%]'
       }
       
+      pal <- colorBin(colscal(col = col,rev=rev),breaks, bins = 10, pretty = TRUE,na.color = NA)
       
-      pal <- colorBin(colscal(col = col,n=100,rev=rev),breaks, bins = 10, pretty = TRUE,na.color = NA)
-      
+      ## custom label format function
+      myLabelFormat = function(..., reverse_order = FALSE){
+        if(reverse_order){
+          function(type = "numeric", cuts){
+            cuts <- sort(cuts, decreasing = T)
+          }
+        } else{
+          labelFormat(...)
+        }
+      }
+      # browser()
       m <- leaflet() %>%
         addProviderTiles(providers$Esri.WorldStreetMap,
                          #addProviderTiles(providers$Stamen.TonerLite,
                          options = providerTileOptions(noWrap = TRUE)) %>%
         setView(lat=64,lng = 16, zoom = 4) %>%
         addRasterImage(x = r,colors = pal, opacity = 0.65)
-        
+      ## browser()  
       if (input$legend == 'Display')
-        m <- m %>% addLegend("topleft", pal=pal, values=round(r@data@values, digits = 2), title=leg.title,
-                  layerId="colorLegend")
-      if (input$minimap == 'Display')
+        m <- m %>% addLegend("bottomleft", values=round(r@data@values, digits = 2), 
+                             title=leg.title, colors = rev(colscal(col= col, n=length(pretty(breaks,n = 10)))),
+                             labels = rev(pretty(breaks,n = 10)),#pal=pal, 
+                             labFormat = myLabelFormat(reverse_order = F),layerId="colorLegend") 
+        # m <- m %>% addLegend("topleft", values=round(r@data@values, digits = 2), title=leg.title, colors = pal(round(r@data@values, digits = 2)),labels = seq(1,10,1),#pal=pal, 
+        #                      labFormat = myLabelFormat(reverse_order = T),layerId="colorLegend") # labFormat = myLabelFormat(reverse_order = T),
+       if (input$minimap == 'Display')
         m <- m %>% addMiniMap()
       m
     })
-   
   })
   
-  output$title1 <- renderText({
-    if (input$im == 'Ens. Mean')
-      txt <- 'Ensemble Mean'
-    else 
-      txt <- unlist(strsplit(input$im,split = '_'))[2]
-    paste(toupper(txt), ' of projected changes in ',input$season7, ' mean ', input$param7,'.',sep= '')
+  ### Render the plot
+  ### Function to read seasonal values
+  getz1 <- function(season7,dates7,lon7,lat7,rcp7,param7,im,datesref)({
+    print('in Z1 function')
+    # browser()
+    # SET PARAMETERS
+    season <- switch(tolower(as.character(season7)),
+                     'Annual (All seasons)'='ann','winter'='djf','spring'='mam','summer'='jja','autumn'='son')
+    rcp <- switch(tolower(as.character(rcp7)),
+                  'rcp4.5'='45','rcp2.6'='26','rcp8.5'='85')
+    param <- switch(tolower(as.character(param7)),
+                    'temperature'='t2m','wet-day freq.'='fw','precip. intensity'='mu',
+                    'precip. sum'='ptot')
+    
+    it <- range(as.numeric(dates7))
+    it.ref <- range(as.numeric(datesref))
+    is <- list(lon=as.numeric(lon7),lat=as.numeric(lat7))
+    
+    # load the data 
+    eval(parse(text = paste('z <- Z4$',paste(param,season,rcp,sep='.'),sep='')))
+   
+    if (input$im == 'Ens. Mean') {
+      z1 <- subset.dsensemble(z, is=is)
+      y1 <- plot.dsensemble(z1,plot = FALSE, new = FALSE)
+    } else {
+      gcmnames <- names(z)[grep('_',names(z))]
+      im1 <- is.element(gcmnames,im)
+      z1 <- subset(z,im=im1,is=is)
+      y1 <- plot.dsensemble(z1,plot=FALSE,new = FALSE)
+    }
+    invisible(y1)
+  }) 
+  
+  # reactive expressions
+  zsm1 <- reactive({
+    return(getz1('Winter',input$dates7,input$lon7,input$lat7,input$rcp7,input$param7,input$im,input$datesref))
   })
+  
+  zsm2 <- reactive({
+    return(getz1('Spring',input$dates7,input$lon7,input$lat7,input$rcp7,input$param7,input$im,input$datesref))
+  })
+  
+  zsm3 <- reactive({
+    return(getz1('Summer',input$dates7,input$lon7,input$lat7,input$rcp7,input$param7,input$im,input$datesref))
+  })
+  
+  zsm4 <- reactive({
+    return(getz1('Autumn',input$dates7,input$lon7,input$lat7,input$rcp7,input$param7,input$im,input$datesref))
+  })
+  
+  zplot.reactive <- reactive({
+    
+    ##browser()
+    season <- switch(tolower(as.character(input$season7)),
+                     'annual (all seasons)'='ann','winter (djf)'='djf','spring (mam)'='mam','summer (jja)'='jja','autumn (son)'='son')
+    
+    if (season == 'ann')  {
+      
+      zmap1 <- zsm1()
+      zmap2 <- zsm2()
+      zmap3 <- zsm3()
+      zmap4 <- zsm4()
+      
+      zmap <- zmap1
+      coredata(zmap) <- (coredata(zmap1) + coredata(zmap2) + coredata(zmap3) + coredata(zmap4)) / 4
+      rm('zmap1','zmap2','zmap3','zmap4')
+      
+    } else {
+      if (season == 'djf')
+        zmap <- zsm1()
+      else if (season == 'mam')
+        zmap <- zsm2()
+      else if (season == 'jja')
+        zmap <- zsm3()
+      else if (season == 'son')
+        zmap <- zsm4()
+    }
+    return(zmap)
+  })
+  
+  # observe(priority = 0, {
+  #   zplot <- zplot.reactive()
+  #   output$plot <- renderPlot({
+  #     
+  #     ## browser()
+  #     print('zplot contains ...')
+  #     str(zplot)
+  #     # df <- data.frame(cbind(as.numeric(year(zplot)),rowMeans(coredata(zplot),na.rm=TRUE)))
+  #     # colnames(df) <- c('Years','Value')
+  #     # gvisLineChart(data = df, xvar = 'Years', yvar = 'Value') #, options=list(width=400, height=450)
+  #     z.sta <- as.station(zoo(x = zoo(coredata(rowMeans(zplot,na.rm=TRUE)),order.by = index(zplot))))
+  #     plot.station(z.sta, new = FALSE, ylab = input$param7,xlab = 'Years')
+  #     # cat('ObserveEvent','PARAM',input$param7,'SEASON', input$season7,'RCP',input$rcp7,'SM',input$im)
+  #     # cat(sep = '\n')
+  #     # x <- attr(zplot,'longitude')
+  #     # y <- attr(zplot,'latitude')
+  #     # z <- coredata(zplot)
+  #     # ## browser()
+  #     # #Create raster object
+  #     # dat1 <- list(x=attr(zplot,'longitude'),y = attr(zplot,'latitude'), z = coredata(zplot))
+  #     # dim(dat1$z) <- c(length(dat1$x),length(dat1$y))
+  #     # r <- raster(dat1)
+  #     # print(r)
+  #     # #
+  #     # if ((input$param7 == 'Temperature')) {
+  #     #   rev <- FALSE
+  #     #   col <- 'warm'
+  #     #   rng <- round(range(r@data@values,na.rm=TRUE),digits = 1)
+  #     #   breaks <- c(0,max(rng))
+  #     #   #breaks <- seq(-5,5,0.5)
+  #     #   leg.title <- "Absolute change [C]"
+  #     # } else if (input$param7 == 'Precip. sum') {
+  #     #   rev <- FALSE
+  #     #   col <- 'precip'
+  #     #   breaks <- seq(-50,50,5)
+  #     #   leg.title <- 'Relative change [%]'
+  #     # } else if (input$param7 == 'Wet-day freq.') {
+  #     #   rev <- TRUE
+  #     #   col <- 't2m'
+  #     #   rng <- round(range(r@data@values,na.rm=TRUE),digits = 0)
+  #     #   breaks <- c(-max(abs(rng)),max(abs(rng)))
+  #     #   #breaks <- seq(0,1,0.05)
+  #     #   leg.title <- 'Relative change  [%]'
+  #     # } else if (input$param7 == 'Precip. intensity') {
+  #     #   rev <- FALSE
+  #     #   col <- 'precip'
+  #     #   rng <- round(range(r@data@values,na.rm=TRUE),digits = 1)
+  #     #   breaks <- c(-max(abs(rng)),max(abs(rng))) #seq(0,20,0.05)
+  #     #   leg.title <- 'Relative change [%]'
+  #     # }
+  #     
+  #   })
+  # })
+  
+  # output$title1 <- renderText({
+  #   if (input$im == 'Ens. Mean')
+  #     txt <- 'Ensemble Mean'
+  #   else 
+  #     txt <- unlist(strsplit(input$im,split = '_'))[2]
+  #   paste(toupper(txt), ' of projected changes in ',input$season7, ' mean ', input$param7,'.',sep= '')
+  # })
   
   output$subtitle1 <- renderText({
     if (input$im == 'Ens. Mean')
@@ -791,33 +949,56 @@ shinyServer(function(input, output, session) {
           paste(input$datesref, collapse = '--'),' assuming ',input$rcp7, 'scenarios.')
   })
   
+  output$subtitle2 <- renderText({
+    if (input$im == 'Ens. Mean')
+      txt <- 'Ensemble Mean'
+    else 
+      txt <- unlist(strsplit(input$im,split = '_'))[2]
+    paste(toupper(txt), ' of area averaged projected changes in mean ', 
+          tolower(input$season7), tolower(input$param7), 'by',
+          paste(input$dates7,collapse = '--'), 'with regards to the base period ',
+          paste(input$datesref, collapse = '--'),' assuming ',input$rcp7, 'scenarios.')
+  })
+  
   output$use.stats <- renderText({
     txt <- paste(countview$i,"actions")
   })
   
   observe({
-    if (input$rcp7 == 'RCP2.6')
-      ngcms <- length(gcmnames.26)
-    else if (input$rcp7 == 'RCP4.5')
-      ngcms <- length(gcmnames.45)
-    else if (input$rcp7 == 'RCP8.5')
-      ngcms <- length(gcmnames.85)
-    
+    if (!input$im == 'Ens. Mean') {
+      ngcms <- 1
+      subtitle <- tags$h5(paste('Global Climate Models (',
+                                toupper(unlist(strsplit(input$im,split = '_'))[2]),')',sep =' '))
+    } else {
+      if (input$rcp7 == 'RCP2.6')
+        ngcms <- length(gcmnames.26)
+      else if (input$rcp7 == 'RCP4.5')
+        ngcms <- length(gcmnames.45)
+      else if (input$rcp7 == 'RCP8.5')
+        ngcms <- length(gcmnames.85)
+      subtitle <- tags$h5('Global Climate Models')
+    }
     output$ngcmbox <- renderValueBox({
-      valueBox(value = ngcms, subtitle = tags$h5('Global Climate Models'),
+      valueBox(value = ngcms, subtitle = subtitle,
                icon = NULL, color = "aqua", width = 4,
                href = NULL)})
     
     output$rcpbox <- renderValueBox({
       valueBox(value = input$rcp7, subtitle = tags$h5('Radiative Concentration Pathway'),
-               icon = NULL, color = "orange", width = 4,
+               icon = NULL, color = "green", width = 4,
                href = NULL)
     })
     
-    output$parambox <- renderValueBox({
-      valueBox(input$param7, 
-               subtitle = 'Climate Index',
-               icon = NULL, color = "olive", width = 4)
+    output$changebox <- renderValueBox({
+      
+      if (input$param7 == 'Temperature') unit <- ' C' else unit <- '%'
+      val <- round(mean(coredata(zmap.reactive()),na.rm=TRUE),digits = 1)
+      if (val >0)
+        txt <- paste('+',as.character(val), unit,sep = ' ')
+      
+      valueBox(as.character(HTML(txt)), 
+               subtitle = paste('Averaged change in ', input$param7,sep=''),
+               icon = NULL, color = "orange", width = 4)
     })
     
     

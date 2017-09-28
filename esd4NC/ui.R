@@ -44,7 +44,9 @@ dashboardPage(skin = "blue",
                 ),
               dashboardBody(
                 fluidPage(
-                  
+                  valueBoxOutput("changebox"),
+                  valueBoxOutput("rcpbox"),
+                  valueBoxOutput("ngcmbox"),
                   fluidRow(title = "Disclaimer & info",
                            column(12, 
                                   box(title = "Disclaimer", status = 'info',collapsible = TRUE,collapsed = FALSE,width = '100%',
@@ -59,14 +61,15 @@ dashboardPage(skin = "blue",
                 fluidPage(theme = "bootstrap.css",
                           fluidRow(
                             column(12, 
-                                   box(title = tags$h5(textOutput("title1")), width = '100%' , status = 'primary',
+                                   box(title = 'Explore Map', width = '100%' , status = 'primary', # textOutput("title1")
                                        footer = tags$h5(textOutput("subtitle1")),solidHeader = TRUE,
                                        collapsible = TRUE,collapsed = FALSE,
-                                       leafletOutput("map0sm",width = '100%', height = 450))),
-                            p(),
-                            box(title = "Winter Changes",status = 'primary',
-                                footer = tags$h4('Changes with regards to the reference period.'),solidHeader = TRUE,
-                                collapsible = TRUE,collapsed = TRUE, plotOutput("plotndays",width = '100%', height = 450)) #,
+                                       leafletOutput("map0sm",width = '100%', height = 450)))#,
+                            # p() ,
+                            # column(12, 
+                            #        box(title = "Explore Chart (Not yet finished)",status = 'primary', width = '100%',
+                            #     footer = tags$h4(textOutput("subtitle2")), solidHeader = TRUE,
+                            #     collapsible = TRUE,collapsed = TRUE,  plotOutput("plot", width = '100%', height = 300))) #,
                             # box(title = "Spring Changes",status = 'primary',
                             #     footer = tags$h4('Changes with regards to the reference period.'),solidHeader = TRUE,
                             #     collapsible = TRUE,collapsed = TRUE, leafletOutput("map2sm",width = '100%', height = 450)),
@@ -83,7 +86,7 @@ dashboardPage(skin = "blue",
                   
                   fluidRow(title = "Disclaimer & info",
                            column(12, 
-                                  box(title = "More info", status = 'info',collapsible = TRUE,collapsed = TRUE,width = '100%',
+                                  box(title = "More info", status = 'info',collapsible = TRUE,collapsed = FALSE,width = '100%',
                                       tags$body(h4("Compressed data"),
                                                 "This app provides a demonstration of compressing information: the data presented here would require more
                                                 than 900Mb if it were stored uncompressed as 16-bit numbers, whereas the actual space needed is 97Mb for compressed
@@ -102,10 +105,7 @@ dashboardPage(skin = "blue",
                                                 "Further description of this kind of tool is provided in ",
                                                 a("Benestad et al. (2017)",href="http://www.sciencedirect.com/science/article/pii/S2405880717300043")))
                            )
-                  ),
-                  valueBoxOutput("rcpbox"),
-                  valueBoxOutput("ngcmbox"),
-                  valueBoxOutput("parambox")
+                  )
                   
                 )
                 

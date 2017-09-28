@@ -5,6 +5,6 @@ account: metno-esd
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 217449
-bundleId: 995756
+bundleId: 1001218
 url: https://metno-esd.shinyapps.io/esd_toolkit/
-when: 1506331833.70419
+when: 1506580891.9128
