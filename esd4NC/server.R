@@ -785,7 +785,7 @@ shinyServer(function(input, output, session) {
       ## browser()  
       if (input$legend == 'Display')
         m <- m %>% addLegend("bottomleft", values=round(r@data@values, digits = 2), 
-                             title=leg.title, colors = rev(colscal(col= col, n=length(pretty(breaks,n = 10)))),
+                             title=leg.title, colors = rev(colscal(col= col, rev = rev, n=length(pretty(breaks,n = 10)))),
                              labels = rev(pretty(breaks,n = 10)),#pal=pal, 
                              labFormat = myLabelFormat(reverse_order = F),layerId="colorLegend") 
         # m <- m %>% addLegend("topleft", values=round(r@data@values, digits = 2), title=leg.title, colors = pal(round(r@data@values, digits = 2)),labels = seq(1,10,1),#pal=pal, 
