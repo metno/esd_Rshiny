@@ -1,0 +1,10 @@
+name: esd_toolkit
+title:
+username:
+account: metno-esd
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 217449
+bundleId: 1001218
+url: https://metno-esd.shinyapps.io/esd_toolkit/
+when: 1506580891.9128
