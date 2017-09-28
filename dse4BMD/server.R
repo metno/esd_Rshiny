@@ -314,7 +314,7 @@ shinyServer(function(input, output, session) {
       main <- paste(is,li,sum(im),index(z)[1],paste(class(z),collapse='-'))
       #plot(z,main=main,obs.show=FALSE,target.show=FALSE,legend.show=FALSE,new=FALSE)
       plot(z,main=main,target.show=FALSE,legend.show=FALSE,new=FALSE,
-           xrange=c(2,35),yrange=c(53,75),
+           xrange=range(lon(zz$pca)),yrange=range(lat(zz$pca)),
            map.show=TRUE,usegooglemap=FALSE,verbose=FALSE)
     }
     #index(y) <- year(y)
@@ -403,8 +403,9 @@ shinyServer(function(input, output, session) {
       }
       z <- c(as.numeric(subset(z,it=it)))
       zx <- ceiling(max(c(abs(z),abs(input$threshold4)),na.rm=TRUE))+1
+      zn <- floor(min(c(abs(z),input$threshold4),na.rm=TRUE))-1
       breaks <- switch(input$param4,
-                       "Temperature" = seq(-zx,zx,by=0.5),
+                       "Temperature" = seq(zn,zx,by=0.1),
                        "Wet-day freq." = seq(0,1,by=0.02),
                        "Precip. intensity" = seq(0,zx,by=0.2),
                        "Precip. sum"=seq(0,zx,by=10))
