@@ -3,6 +3,7 @@
 # table view of the generated distribution
 
 library(shinydashboard)
+
 dashboardPage(skin = "blue",
               dashboardHeader(title = "Projected changes for the Nordic countries ",titleWidth = 600,
                               dropdownMenuOutput("messageMenu")),
@@ -11,7 +12,7 @@ dashboardPage(skin = "blue",
                 tags$h4("Settings Panel "),
                 selectInput("param7",
                             label = "Element",
-                            choices = c("Temperature","Precip. sum",
+                            choices = c("Temperature", # "Precip. sum",
                                         "Wet-day freq.","Precip. intensity"),
                             selected = "Temperature",width = '100%'),
                 selectInput("rcp7",label = "Scenario",
@@ -39,9 +40,11 @@ dashboardPage(skin = "blue",
                             selected = "Display",width = '100%'),
                 selectInput("minimap",label = "Mini Map",
                             choices = c("Display","Hide"),
-                            selected = "Display",width = '100%') #,
+                            selected = "Display",width = '100%')
                 # textInput("threshold8",label = "Threshold", placeholder = "1",width = '100%')
-                ),
+                
+                
+              ),
               dashboardBody(
                 fluidPage(
                   valueBoxOutput("changebox"),

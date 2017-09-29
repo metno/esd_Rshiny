@@ -461,6 +461,16 @@ shinyServer(function(input, output, session) {
   ## Show a map of evaluation scores
   ## Central parts of circle shows trend similarity
   ## Outer rim shows the number outside the 90% confidence interval
+  #browser()
+  
+  observe({
+    #if (session$isClosed()) {
+    sheet <- googlesheets::gs_title('esd_Rshiny_usage')
+    df <- data.frame(cbind(date(), session$clientData$url_hostname, input$rcp7,
+                           input$param7,input$im,input$season7,paste(input$dates7,collapse = '/'),paste(input$datesref,collapse = '/'),paste(input$lon7,collapse = '/'),paste(input$lat7,collapse = '/')))
+    gs_add_row(sheet,ws = 1, input = df)
+    #}
+  })
   
   output$plot.prob <- renderPlot({
     if(!is.null(input$location4)) {
@@ -723,7 +733,7 @@ shinyServer(function(input, output, session) {
     output$map0sm <- renderLeaflet({
     ## browser()
     print('zmap contains ...')
-      str(zmap)
+      # str(zmap)
       cat('ObserveEvent','PARAM',input$param7,'SEASON', input$season7,'RCP',input$rcp7,'SM',input$im)
       cat(sep = '\n')
       x <- attr(zmap,'longitude')
@@ -734,8 +744,8 @@ shinyServer(function(input, output, session) {
       dat1 <- list(x=attr(zmap,'longitude'),y = attr(zmap,'latitude'), z = coredata(zmap))
       dim(dat1$z) <- c(length(dat1$x),length(dat1$y))
       r <- raster(dat1)
-      print(r)
-      #
+      print(print(object.size(r),units = 'Mb'))
+      
       if ((input$param7 == 'Temperature')) {
         rev <- FALSE
         col <- 'warm'
@@ -749,7 +759,7 @@ shinyServer(function(input, output, session) {
         breaks <- seq(-50,50,5)
         leg.title <- 'Change [%]'
       } else if (input$param7 == 'Wet-day freq.') {
-        rev <- TRUE
+        rev <- FALSE
         col <- 't2m'
         rng <- round(range(r@data@values,na.rm=TRUE),digits = 0)
         breaks <- c(-max(abs(rng)),max(abs(rng)))

@@ -10,6 +10,7 @@ library(leaflet)
 library(raster)
 library(rgdal)
 library(shinydashboard)
+library(googlesheets)
 
 #if ('RgoogleMaps' %in% installed.packages()) install.packages('RgoogleMaps')
 #library(RgoogleMaps)
