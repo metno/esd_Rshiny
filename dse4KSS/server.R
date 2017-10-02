@@ -6,8 +6,9 @@
 
 library(shiny)
 library(esd)
+
 #if ('RgoogleMaps' %in% installed.packages()) install.packages('RgoogleMaps')
-library(RgoogleMaps)
+#library(RgoogleMaps)
 
 ## Preparations - grid the station data and reduce the size of the data by keeping only
 ## the most important PCA modes.
@@ -176,6 +177,7 @@ shinyServer(function(input, output, session) {
   ## Show map of gridded temperature
   output$maps <- renderPlot({ 
     it <- range(as.numeric(input$dates1))
+    it0 <- range(as.numeric(input$baseline))
     is <- list(lon=as.numeric(input$lon1),lat=as.numeric(input$lat1))
     season <- switch(tolower(as.character(input$season1)),
                      'winter'=1,'spring'=2,'summer'=3,'autumn'=4)
@@ -192,39 +194,60 @@ shinyServer(function(input, output, session) {
     if (param>=0) li <- (rcp-1)*4+season + param else
                   li <- (rcp-1)*4+season + 12
     im <- is.element(gcmnames,input$im)
-    gcnames <<- names(Z4[[li]])[-c(1,2,length(Z4[[1]]))]
+    gcnames <- names(Z4[[li]])[-c(1,2,length(Z4[[1]]))]
+    main <- paste('Downscaled',FUN,tolower(input$season1),tolower(input$param1),'for',it[1],'-',it[2],
+                  'following',toupper(input$rcp1),'based on',sum(im),'model runs')
+    
     ## Check if thetotal precipitation needs to be estimated:
     if (param>=0) {
       zmap <- Z4[[li]]
+      if (FUN=="change") {
+        dzmap <- map(zmap,FUN="mean",FUNX=FUNX,it=it,is=is,im=im,plot=FALSE)
+        dzmap0 <- map(zmap,FUN="mean",FUNX=FUNX,it=it0,is=is,im=im,plot=FALSE)
+        coredata(dzmap) <- coredata(dzmap) - coredata(dzmap0)
+        zmap <- dzmap; rm('dzmap','dzmap0'); it <- NULL; im <- NULL; is <- NULL
+        str(zmap)
+        FUN <- "mean"
+      }
     } else {
       ## The total precipitation = 90 * fw * mu which requires a transform from EOF to
       ## a field object
       zmap1 <- Z4[[(rcp-1)*4+season + 12]]
       zmap2 <- Z4[[(rcp-1)*4+season + 24]]
-      itx <- it
-      if ((FUN=="change")) itx <- c(min(1961,itx),max(1990,itx)) else 
-      if (FUN=="trend") itx[2] <- max(c(itx[2],itx[1]+30))
-      zmap1 <- map(zmap1,FUN="mean",FUNX=FUNX,it=itx,is=is,im=im,plot=FALSE)
-      zmap2 <- map(zmap2,FUN="mean",FUNX=FUNX,it=itx,is=is,im=im,plot=FALSE)
-      zmap <- 90*zmap1*zmap2
-      zmap <- attrcp(zmap1,zmap)
-      class(zmap) <- class(zmap1)
+      if (FUN=="change") {
+        if (it[1]==it[2]) it <- c(it[1],it[1]+(it0[2]-it0[1]))
+        print('Estimate change for total precipitation'); print(exists('zmap1')); print(c(it,it0))
+        dzmap1 <-  map(zmap1,FUN="mean",FUNX=FUNX,it=it0,is=is,im=im,plot=FALSE)
+        dzmap2 <-  map(zmap2,FUN="mean",FUNX=FUNX,it=it0,is=is,im=im,plot=FALSE)
+        dzmap01 <- map(zmap1,FUN="mean",FUNX=FUNX,it=it0,is=is,im=im,plot=FALSE)
+        dzmap02 <- map(zmap2,FUN="mean",FUNX=FUNX,it=it0,is=is,im=im,plot=FALSE)
+        zmap <- dzmap1
+        coredata(zmap) <- 90*(coredata(dzmap1)*coredata(dzmap2) - coredata(dzmap01)*coredata(dzmap02))
+        it <- NULL; im <- NULL; is <- NULL; FUN='mean'; FUNX='mean'
+        rm('dzmap1','dzmap2','dzmap01','dzmap02')
+      }
+      if (FUN=="trend") { 
+        itx <- c(it[1],max(c(it[2],it[1]+30)))
+        zmap1 <- map(zmap1,FUN=FUN,FUNX=FUNX,it=itx,is=is,im=im,plot=FALSE)
+        zmap2 <- map(zmap2,FUN=FUN,FUNX=FUNX,it=itx,is=is,im=im,plot=FALSE)
+        zmap <- zmap1
+        coredata(zmap) <- 90*coredata(zmap1)*coredata(zmap2) 
+        it <- NULL; im <- NULL; is <- NULL; FUN='mean'; FUNX='mean'
+        rm('zmap1','zmap2')
+      } else {
+        zmap1 <- map(zmap1,FUN=FUN,FUNX=FUNX,it=it,is=is,im=im,plot=FALSE)
+        zmap2 <- map(zmap2,FUN=FUN,FUNX=FUNX,it=it,is=is,im=im,plot=FALSE)
+        zmap <- zmap1
+        coredata(zmap) <- 90*coredata(zmap1)*coredata(zmap2) 
+        it <- NULL; im <- NULL; is <- NULL; FUN='mean'; FUNX='mean'
+        rm('zmap1','zmap2')
+      }
       attr(zmap,'variable') <- 'precip'
       attr(zmap,'unit') <- 'mm/season'
-      rm('zmap1','zmap2')
+      str(zmap)
     }
     
-    if (FUN=="trend") it[2] <- max(c(it[2],it[1]+30))
-    main <- paste('Downscaled',FUN,input$season1,tolower(input$param1),'for',it[1],'-',it[2],
-                  'following',toupper(input$rcp1),'based on',sum(im),'model runs')
-    if (FUN=="change") {
-      y <- map(zmap,FUN="mean",FUNX=FUNX,it=it,is=is,im=im,plot=FALSE)
-      it0 <- range(as.numeric(input$baseline))
-      #it0 <- c(1961,1990)
-      y0 <- map(zmap,FUN="mean",FUNX=FUNX,it=it0,is=is,im=im,plot=FALSE)
-      if (is.zoo(y)) coredata(y) <- t(coredata(t(y)) - apply(coredata(t(y0)),1,FUN='mean')) else
-                     y <- y - y0  
-    } else y <- map(zmap,FUN=FUN,FUNX=FUNX,it=it,is=is,im=im,plot=FALSE)
+    y <- map(zmap,FUN=FUN,FUNX=FUNX,it=it,is=is,im=im,plot=FALSE)
     
     map(y,main=main,FUN="mean",new=FALSE)
     }, height=function(){0.8*session$clientData$output_maps_width})

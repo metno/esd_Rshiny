@@ -17,6 +17,7 @@ locs2 <- t2m.locs
 
 navbarPage("The Nordic region climate atlas",
     tabPanel("Maps", 
+             plotOutput("maps", width = "100%", height = "80%"),
              column(3,
                     selectInput("param1", 
                                 label = "Element",
@@ -43,10 +44,10 @@ navbarPage("The Nordic region climate atlas",
                     selectInput("rcp1", 
                                 label = "Scenario", 
                                 choices = c("RCP4.5","RCP2.6", "RCP8.5"),
-                                selected = "RCP4.5")),
-             plotOutput("maps")
+                                selected = "RCP4.5"))
              ),
     tabPanel("Single location", 
+             plotOutput("plot", width = "100%", height = "80%"),
              column(3,
                    uiOutput("locations2")),    
              column(3,
@@ -64,9 +65,10 @@ navbarPage("The Nordic region climate atlas",
                     selectInput("rcp2", 
                                 label = "Scenario", 
                                 choices = c("RCP4.5","RCP2.6", "RCP8.5"),
-                                selected = "RCP4.5")),
-             plotOutput("plot")),
+                                selected = "RCP4.5"))
+             ),
         tabPanel("Multiple locations", 
+                 plotOutput("plot.multi", width = "100%", height = "80%"),
             column(3,
                     sliderInput("lon3", 
                              label = "Longitudes",
@@ -97,9 +99,10 @@ navbarPage("The Nordic region climate atlas",
                     selectInput("rcp3", 
                                 label = "Scenario", 
                                 choices = c("RCP4.5","RCP2.6", "RCP8.5"),
-                                selected = "RCP4.5")),
-             plotOutput("plot.multi")),
+                                selected = "RCP4.5"))
+            ),
     tabPanel("Probabilities", 
+             plotOutput("plot.prob", width = "100%", height = "80%"),
              column(2,
                     #selectInput("location4", 
                     #            label = "Location",
@@ -131,10 +134,11 @@ navbarPage("The Nordic region climate atlas",
                                 choices = c("Lower", "Higher"),
                                 selected = "Lower")),
              column(2, 
-                    numericInput("threshold4", "Threshold", 0.0, min = -50.0, max = 50.0)),
-             plotOutput("plot.prob")),
+                    numericInput("threshold4", "Threshold", 0.0, min = -50.0, max = 50.0))
+             ),
 
 tabPanel("Single model",  ## Unfinished!
+         plotOutput("plot1model", width = "100%", height = "80%"), 
          column(3,
                 selectInput("im7", 
                             label = "Model",
@@ -167,9 +171,10 @@ tabPanel("Single model",  ## Unfinished!
          column(3,
                 sliderInput("dates7", 
                             "Years", 
-                            min=1900, max=2099, value= c(2045,2055),sep="")),
-         plotOutput("plot1model")), 
-tabPanel("Warm/cold days",  
+                            min=1900, max=2099, value= c(2045,2055),sep=""))
+         ),
+tabPanel("Warm/cold days",
+         plotOutput("plotndays", width = "100%", height = "80%"),
          column(3,
                 selectInput("location8", 
                             label = "Location",
@@ -192,11 +197,12 @@ tabPanel("Warm/cold days",
                                         "Hot summer days"),
                             selected = "Cold winter days")),
          column(2,
-                uiOutput("thresholds8")),
+                uiOutput("thresholds8"))
+         ),
                 #numericInput("threshold8", "Threshold", 0.0, min = -50.0, max = 50.0)),
          
-         plotOutput("plotndays")),
 tabPanel("Quality",  ## Unfinished!
+         plotOutput("map.quality", width = "100%", height = "80%"),
              column(2,
                     selectInput("param6", 
                                 label = "Element",
@@ -225,8 +231,7 @@ tabPanel("Quality",  ## Unfinished!
              column(3,
                     sliderInput("lat6", 
                                 label = "Latitudes",
-                                min = 55, max = 72, value = c(55, 72))),
-            plotOutput("map.quality")
+                                min = 55, max = 72, value = c(55, 72)))
     ),
     tabPanel("Settings", ## Unfinished! Aslo include settings for maps: text
              column(2,
@@ -282,6 +287,9 @@ tabPanel("Quality",  ## Unfinished!
                 "which is based on the R-package 'esd' also available on ",a("GitHub.",href="https://github.com/metno/esd"),
                 h2("Data"),
                 "The data (DOI: 10.6084/m9.figshare.2056701.v2) is available from ",
-                a("GitHub.",href="https://github.com/metno/esd_Rshiny/tree/master/dse4KSS/data"))
+                a("GitHub.",href="https://github.com/metno/esd_Rshiny/tree/master/dse4KSS/data"),
+                h2("Documentation"),
+                "Further description of this kind of tool is provided in ",
+                a("Benestad et al. (2017)",href="http://www.sciencedirect.com/science/article/pii/S2405880717300043"))
          )
 )
