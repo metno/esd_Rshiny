@@ -430,7 +430,17 @@ shinyServer(function(input, output, session) {
   #   #plot(rnorm(100),main=main)
   # }, height=function(){0.9*session$clientData$output_plot_width},width = 'auto') #600}) 
   # 
-  ## Plot ensemble statistics for multiple-stations
+
+observe({
+    #if (session$isClosed()) {
+    sheet <- googlesheets::gs_title('esd_Rshiny_usage')
+    df <- data.frame(cbind(date(), session$clientData$url_hostname, input$rcp7,
+                           input$param7,input$im,input$season7,paste(input$dates7,collapse = '/'),paste(input$datesref,collapse = '/'),paste(input$lon7,collapse = '/'),paste(input$lat7,collapse = '/')))
+    gs_add_row(sheet,ws = 1, input = df)
+    #}
+  })
+
+## Plot ensemble statistics for multiple-stations
   output$plot.multi <- renderPlot({ 
     it <- range(as.numeric(input$dates3))
     season <- switch(tolower(as.character(input$season3)),
@@ -744,8 +754,8 @@ shinyServer(function(input, output, session) {
         #breaks <- seq(-5,5,0.5)
         leg.title <- "Change [C]"
       } else if (input$param7 == 'Precip. sum') {
-        rev <- FALSE
-        col <- 'precip'
+        rev <- TRUE
+        col <- 't2m'
         breaks <- seq(-50,50,5)
         leg.title <- 'Change [%]'
       } else if (input$param7 == 'Wet-day freq.') {
@@ -756,8 +766,8 @@ shinyServer(function(input, output, session) {
         #breaks <- seq(0,1,0.05)
         leg.title <- 'Change [%]'
       } else if (input$param7 == 'Precip. intensity') {
-        rev <- FALSE
-        col <- 'precip'
+        rev <- TRUE
+        col <- 't2m'
         rng <- round(range(r@data@values,na.rm=TRUE),digits = 1)
         breaks <- c(-max(abs(rng)),max(abs(rng))) #seq(0,20,0.05)
         leg.title <- 'Change [%]'
@@ -995,7 +1005,8 @@ shinyServer(function(input, output, session) {
       val <- round(mean(coredata(zmap.reactive()),na.rm=TRUE),digits = 1)
       if (val >0)
         txt <- paste('+',as.character(val), unit,sep = ' ')
-      
+      else 
+ 	txt <- paste(as.character(val), unit,sep = ' ')
       valueBox(as.character(HTML(txt)), 
                subtitle = paste('Averaged change in ', input$param7,sep=''),
                icon = NULL, color = "orange", width = 4)
