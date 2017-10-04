@@ -1004,7 +1004,7 @@ observe({
                href = NULL)})
     
     output$rcpbox <- renderValueBox({
-      valueBox(value = input$rcp7, subtitle = tags$h5('Radiative Concentration Pathway'),
+      valueBox(value = input$rcp7, subtitle = tags$h5('Representative Concentration Pathway'),
                icon = NULL, color = "green", width = 4,
                href = NULL)
     })
