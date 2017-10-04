@@ -16,6 +16,6 @@ shinyServer(function(input, output) {
   })
   
   output$plot1 <- renderPlot({
-    map.fancy(selectedCyclones(),param=selectedParam())
+    map.fancy(selectedCyclones(), param=selectedParam())
    }, height=450, width=500)
 })
