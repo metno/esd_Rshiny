@@ -16,8 +16,8 @@ dashboardPage(skin = "blue",
                                         "Wet-day freq.","Precip. intensity"),
                             selected = "Temperature",width = '100%'),
                 selectInput("rcp7",label = "Scenario",
-                            choices = c("RCP4.5","RCP2.6", "RCP8.5"),
-                            selected = "RCP2.6",width = '100%'),
+                            choices = c("Intermediate emissions (RCP4.5)","Low emissions (RCP2.6)", "High emissions (RCP8.5)"),
+                            selected = "Intermediate emissions (RCP4.5)",width = '100%'),
                 selectInput(inputId = 'im',label = "Model",choices = c('Ens. Mean','------',gcmnames.26),
                             selected = 'Ens. Mean',width = '100%'),
                 selectInput("season7",label = "Season",
@@ -37,10 +37,10 @@ dashboardPage(skin = "blue",
                             sep="",width = "100%"),
                 selectInput("legend",label = "Legend",
                             choices = c("Display","Hide"),
-                            selected = "Display",width = '100%'),
+                            selected = "Hide",width = '100%'),
                 selectInput("minimap",label = "Mini Map",
                             choices = c("Display","Hide"),
-                            selected = "Display",width = '100%')
+                            selected = "Hide",width = '100%')
                 # textInput("threshold8",label = "Threshold", placeholder = "1",width = '100%')
                 
                 

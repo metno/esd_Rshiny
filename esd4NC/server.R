@@ -636,12 +636,12 @@ observe({
   ### Function to read seasonal values
   gety1 <- function(season7,dates7,lon7,lat7,rcp7,param7,im,datesref)({
     print('in Y1 function')
-    # browser()
+    #browser()
     # SET PARAMETERS
     season <- switch(tolower(as.character(season7)),
                      'Annual (All seasons)'='ann','winter'='djf','spring'='mam','summer'='jja','autumn'='son')
     rcp <- switch(tolower(as.character(rcp7)),
-                  'rcp4.5'='45','rcp2.6'='26','rcp8.5'='85')
+                  'intermediate emissions (rcp4.5)'='45','low emissions (rcp2.6)'='26','high emissions (rcp8.5)'='85')
     param <- switch(tolower(as.character(param7)),
                     'temperature'='t2m','wet-day freq.'='fw','precip. intensity'='mu',
                     'precip. sum'='ptot')
@@ -678,11 +678,11 @@ observe({
   }) 
   
   observe({
-    if (tolower(input$rcp7) == 'rcp4.5') 
+    if (tolower(input$rcp7) == 'intermediate emissions (rcp4.5)') 
       choices <- c('Ens. Mean','------',gcmnames.45)
-    else if (tolower(input$rcp7) == 'rcp8.5')
+    else if (tolower(input$rcp7) == 'high emissions (rcp8.5)')
       choices <- c('Ens. Mean','------',gcmnames.85)
-    else if (tolower(input$rcp7) == 'rcp2.6')
+    else if (tolower(input$rcp7) == 'low emissions (rcp2.6)')
       choices <- c('Ens. Mean','------',gcmnames.26)
     updateSelectInput(session,inputId = "im", choices = choices, selected = choices[1])
   })
@@ -825,7 +825,7 @@ observe({
     season <- switch(tolower(as.character(season7)),
                      'Annual (All seasons)'='ann','winter'='djf','spring'='mam','summer'='jja','autumn'='son')
     rcp <- switch(tolower(as.character(rcp7)),
-                  'rcp4.5'='45','rcp2.6'='26','rcp8.5'='85')
+                  'intermediate emissions (rcp4.5)'='45','low emissions (rcp2.6)'='26','high emissions (rcp8.5)'='85')
     param <- switch(tolower(as.character(param7)),
                     'temperature'='t2m','wet-day freq.'='fw','precip. intensity'='mu',
                     'precip. sum'='ptot')
@@ -987,14 +987,14 @@ observe({
   observe({
     if (!input$im == 'Ens. Mean') {
       ngcms <- 1
-      subtitle <- tags$h5(paste('Global Climate Models (',
-                                toupper(unlist(strsplit(input$im,split = '_'))[2]),')',sep =' '))
+      subtitle <- tags$h5(paste('Global Climate Model(s) (',
+                                toupper(unlist(strsplit(input$im,split = '_'))[2]),')',sep =''))
     } else {
-      if (input$rcp7 == 'RCP2.6')
+      if (input$rcp7 == 'Low emissions (RCP2.6)')
         ngcms <- length(gcmnames.26)
-      else if (input$rcp7 == 'RCP4.5')
+      else if (input$rcp7 == 'Intermediate emissions (RCP4.5)')
         ngcms <- length(gcmnames.45)
-      else if (input$rcp7 == 'RCP8.5')
+      else if (input$rcp7 == 'High emissions (RCP8.5)')
         ngcms <- length(gcmnames.85)
       subtitle <- tags$h5('Global Climate Models')
     }
@@ -1004,7 +1004,12 @@ observe({
                href = NULL)})
     
     output$rcpbox <- renderValueBox({
-      valueBox(value = input$rcp7, subtitle = tags$h5('Representative Concentration Pathway'),
+      browser()
+      text <- strsplit(input$rcp7,split = '\\(')[[1]][1]
+      maintext <-strsplit(text,split = ' ')[[1]][1]
+      rcp <- strsplit(input$rcp7,split = '\\(')[[1]][2]
+      subtext <- strsplit(rcp,split = '\\)')[[1]][] 
+      valueBox(value = maintext, subtitle = tags$h5(paste('Emission Scenario (',subtext,')',sep='')),
                icon = NULL, color = "green", width = 4,
                href = NULL)
     })
