@@ -431,14 +431,14 @@ shinyServer(function(input, output, session) {
   # }, height=function(){0.9*session$clientData$output_plot_width},width = 'auto') #600}) 
   # 
 
-observe({
-    #if (session$isClosed()) {
-    sheet <- googlesheets::gs_title('esd_Rshiny_usage')
-    df <- data.frame(cbind(date(), session$clientData$url_hostname, input$rcp7,
-                           input$param7,input$im,input$season7,paste(input$dates7,collapse = '/'),paste(input$datesref,collapse = '/'),paste(input$lon7,collapse = '/'),paste(input$lat7,collapse = '/')))
-    gs_add_row(sheet,ws = 1, input = df)
-    #}
-  })
+# observe({
+#    #if (session$isClosed()) {
+#    sheet <- googlesheets::gs_title('esd_Rshiny_usage')
+#    df <- data.frame(cbind(date(), session$clientData$url_hostname, input$rcp7,
+#                           input$param7,input$im,input$season7,paste(input$date#s7,collapse = '/'),paste(input$datesref,collapse = '/'),paste(input$lon7,collap#se = '/'),paste(input$lat7,collapse = '/')))
+#    gs_add_row(sheet,ws = 1, input = df)
+#    #}
+#  })
 
 ## Plot ensemble statistics for multiple-stations
   output$plot.multi <- renderPlot({ 
@@ -473,14 +473,14 @@ observe({
   ## Outer rim shows the number outside the 90% confidence interval
   #browser()
   
-  observe({
-    #if (session$isClosed()) {
-    sheet <- googlesheets::gs_title('esd_Rshiny_usage')
-    df <- data.frame(cbind(date(), session$clientData$url_hostname, input$rcp7,
-                           input$param7,input$im,input$season7,paste(input$dates7,collapse = '/'),paste(input$datesref,collapse = '/'),paste(input$lon7,collapse = '/'),paste(input$lat7,collapse = '/')))
-    gs_add_row(sheet,ws = 1, input = df)
-    #}
-  })
+  #observe({
+  #  #if (session$isClosed()) {
+  #  sheet <- googlesheets::gs_title('esd_Rshiny_usage')
+  #  df <- data.frame(cbind(date(), session$clientData$url_hostname, input$rcp7,
+  #                         input$param7,input$im,input$season7,paste(input$date#s7,collapse = '/'),paste(input$datesref,collapse = '/'),paste(input$lon7,collap#se = '/'),paste(input$lat7,collapse = '/')))
+#    gs_add_row(sheet,ws = 1, input = df)
+#    #}
+#  })
   
   output$plot.prob <- renderPlot({
     if(!is.null(input$location4)) {
@@ -987,7 +987,7 @@ observe({
   observe({
     if (!input$im == 'Ens. Mean') {
       ngcms <- 1
-      subtitle <- tags$h5(paste('Global Climate Model(s) (',
+      subtitle <- tags$h5(paste('Global Climate Model (',
                                 toupper(unlist(strsplit(input$im,split = '_'))[2]),')',sep =''))
     } else {
       if (input$rcp7 == 'Low emissions (RCP2.6)')
@@ -1004,7 +1004,7 @@ observe({
                href = NULL)})
     
     output$rcpbox <- renderValueBox({
-      browser()
+      # browser()
       text <- strsplit(input$rcp7,split = '\\(')[[1]][1]
       maintext <-strsplit(text,split = ' ')[[1]][1]
       rcp <- strsplit(input$rcp7,split = '\\(')[[1]][2]
