@@ -46,7 +46,29 @@ dashboardPage(skin = "blue",
                 
               ),
               dashboardBody(
-                fluidPage(
+
+   	      #include google analytics
+    	      tags$head(HTML("<script async src='https://www.googletagmanager.com/gtag/js?id=UA-108282573-3'></script>
+              <script>
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', 'UA-108282573-3');
+            </script>"
+    	    )),
+    
+	    #send information to google analytics
+    	    #this includes the event name and the value it is set to
+    	    #omit sending plotting information (i.e., events starting with .client)
+    	    tags$script(HTML(
+      	    "$(document).on('shiny:inputchanged', function(event) {
+            if (event.name.substr(1,6) !== 'client') {
+              newname = event.name+' set to '+event.value;
+              gtag('event', newname, {'event_category': 'User interaction'});
+            }
+            });"
+    	    )),
+	    fluidPage(
                   valueBoxOutput("changebox"),
                   valueBoxOutput("rcpbox"),
                   valueBoxOutput("ngcmbox"),
