@@ -662,8 +662,8 @@ shinyServer(function(input, output, session) {
     } else {
       gcmnames <- names(z)[grep('_',names(z))]
       im1 <- is.element(gcmnames,im)
-      z1 <- subset(z,im=im1,it=it,is=is)
-      zz <- subset(z,im=im1,it=it.ref,is=is)
+      z1 <- esd::subset.dsensemble.multi(z,im=im1,it=it,is=is)
+      zz <- esd::subset.dsensemble.multi(z,im=im1,it=it.ref,is=is)
       #zz <- subset(z,im=!im1,it=it.ref,is=is)
       y1 <- map(z1,plot=FALSE)
       yy <- map(zz,plot=FALSE)
@@ -800,7 +800,7 @@ shinyServer(function(input, output, session) {
         addProviderTiles(providers$Esri.WorldStreetMap,
                          #addProviderTiles(providers$Stamen.TonerLite,
                          options = providerTileOptions(noWrap = TRUE)) %>%
-        setView(lat=64,lng = 16, zoom = 4) %>%
+        setView(lat=64,lng = 16, zoom = 5) %>%
         addRasterImage(x = r,colors = pal, opacity = 0.65)
       ## browser()  
       if (input$legend == 'Display')
