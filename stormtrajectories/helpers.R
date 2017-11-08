@@ -8,7 +8,7 @@ map.fancy <- function(Y,param=NULL,xlim=c(-80,40),ylim=c(30,90)) {
              show=FALSE,breaks=breaks)
   cb.cyclones <- select.cb(param=param)
   alpha <- select.alpha(dim(Y)[1])
-  dev.new(width=5.5,height=5)
+  #dev.new(width=5.5,height=5)
   par(mar=c(5.1, 4.1, 2.5, 2.5), mgp=c(2,0.5,0))
   par(bty="n", fig=c(0,1,0.1,1))
   map(etopo5,

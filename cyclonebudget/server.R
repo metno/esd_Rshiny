@@ -14,7 +14,7 @@ shinyServer(function(input, output) {
   # hgt <- as.numeric(sz()$height)
   # wdh <- as.numeric(sz()$width)
   nr <- reactive({
-    ceiling(length(input$param)/4)
+    ceiling(length(input$param)/3)
   })
   
   nc <- reactive({
@@ -28,7 +28,7 @@ shinyServer(function(input, output) {
   output$plot1 <- renderPlot({
     plot.cyclonebudget(selectedCyclones(),budnames=input$param,
                        xlim=c(-60,60),ylim=c(30,80),new=FALSE)
-   }, height=function(){135*as.numeric(nr())}, 
-      width=function(){135*as.numeric(nc())})
+   }, height=function(){200*as.numeric(nr())}, 
+      width=function(){200*as.numeric(nc())})
   
 })

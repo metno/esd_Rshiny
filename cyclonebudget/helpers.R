@@ -1,5 +1,5 @@
 
-prep.imilast(path="~/git/esd_Rshiny/cyclonebudget/data") {
+prep.imilast <- function(path="~/git/esd_Rshiny/cyclonebudget/data") {
   files <- list.files(path=path,pattern="ERAinterim_1.5_NH_M")
   for(f in files) {
     print(f)
