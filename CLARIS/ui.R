@@ -23,7 +23,7 @@ r_colors <- rgb(t(col2rgb(colors()) / 255))
 names(r_colors) <- colors()
 
 ui <- dashboardPage(
-  dashboardHeader(title = 'INAM / Climate Mapping tool v0.1'),
+  dashboardHeader(title = 'CLARIS / Climate Mapping tool v0.1'),
   dashboardSidebar(selectInput("ci", "Climate Index", choices= ci),
                    selectInput("thresh", "Threshold value in mm", choices = c(0.1,0.5,1,5,10),selected=1),
                    #textInput("thresh", "Threshold value in mm", value = 0.1),

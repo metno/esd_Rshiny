@@ -59,6 +59,9 @@ server <- function(input, output, session) {
       return(apply(annual(y,FUN='wetfreq',nmin=30,threshold = thresh()),2,FUN='mean',na.rm=TRUE)) else
     if ( (input$statistic == 'trend') &  (input$ci == 'mwdf') )
       return(apply(annual(y,FUN='wetfreq',nmin=30,threshold = thresh()),2,FUN='tend.coef',na.rm=TRUE)) else
+    if ( (input$statistic == 'trend') &  
+         (sum(is.element(input$ci,c('tmax','tmin','tmaxa','tmina')))>0) )
+          return(apply(annual(y,FUN='mean',nmin=30),2,FUN='trend.coef',na.rm=TRUE)) else
     if (input$statistic == 'years') 
       return(lastyear(y) - firstyear(y) + 1) else 
     if (input$statistic == 'maximum') 
@@ -72,22 +75,22 @@ server <- function(input, output, session) {
   
   ## The map panel 
   output$map <- renderLeaflet({
-    pal <- colorBin(colscal(col = 't2m',n=100,rev = TRUE),vals(),bins = 10,pretty = TRUE)
     
-    ##REB add temperature
     y <- switch(input$ci,
                 'mdp'=pre,'mwdm'=pre,'mwdf'=pre,'rprob'=pre,
                 'tmax'=tmax,'tmin'=tmin,'tmaxa'=tmax,'tmina'=tmin)
+    pal <- colorBin(colscal(col = 't2m',n=100,rev = is.precip(y)[1]),
+                    vals(),bins = 10,pretty = TRUE)
     location <- loc(y)
     station_id <- stid(y)
     startyr <- as.numeric(firstyear(y))
     endyr <- as.numeric(lastyear(y))
     
-    ## BER
     statistic <- switch(input$statistic,
                         'mean' = paste('mean (',unit(y)[1],')',sep=''),
                         'trend' = paste('trend (',unit(y)[1],'/decade)',sep=''),
                         'year' = 'year')
+    #print(statistic)
     
     leaflet() %>% 
       addCircleMarkers(lng = lon(y), # longitude
