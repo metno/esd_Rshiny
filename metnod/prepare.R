@@ -9,7 +9,7 @@ lastrains <- function(x,x0=1,uptodate=TRUE,verbose=FALSE) {
   return(z)
 }
 
-if (FALSE) { 
+## Maximim temperature
 Tx <- retrieve.station('~/git/esd_Rshiny/metnod/data/tmax.metnod.nc')
 ave <- apply(Tx,2,'mean',na.rm=TRUE)
 std <- apply(anomaly(Tx),2,'sd',na.rm=TRUE)
@@ -103,7 +103,6 @@ srt <- order(locs)
 t2m.stats <- t2m.stats[srt,]
 save(t2m.stats,file='~/git/esd_Rshiny/metnod/data/t2m.stats.rda')
 rm('T2m'); gc(reset=TRUE)
-}
 
 ## Precipitation
 
@@ -120,7 +119,7 @@ nv <- apply(Pr,2,'nv')
 ly <- lastyear(Pr)
 fy <- firstyear(Pr)
 nr <- apply(Pr,2,function(x) {x <- x[x > 0]; length(records(x))/log(sum(is.finite(x)))})
-lr <- apply(Pr,2,'lastrain')
+lr <- apply(Pr,2,'lastrains')
 
 precip.stats <- data.frame(mean=ave,std=std,max=mx,min=mn,
                            trend = td,fw.trend=tdwf,mu.trend=tdmu,
