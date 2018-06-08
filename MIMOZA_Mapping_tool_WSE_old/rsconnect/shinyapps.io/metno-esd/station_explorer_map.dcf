@@ -1,0 +1,10 @@
+name: station_explorer_map
+title:
+username:
+account: metno-esd
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 209403
+bundleId: 962054
+url: https://metno-esd.shinyapps.io/station_explorer_map/
+when: 1504186396.18606

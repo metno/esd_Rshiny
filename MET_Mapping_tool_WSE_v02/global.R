@@ -1,9 +1,9 @@
 #locations <- select.station(param=c('t2m','precip'),src='metnod')#,cntr='norway',nmin=100)
 
 #Read precipitation data ...
-load('~/precip.norway.ecad.rda')
-load('~/pre.nordic.rda')
-locations <- precip.nor
+#load('data/precip.norway.ecad.rda')
+load('data/pre.nordic.rda')
+locations <- precip
 coredata(pre)[coredata(pre) > 500] <- NA 
 locations <- pre
 y <- subset(locations,is=which(!duplicated(stid(locations))))
