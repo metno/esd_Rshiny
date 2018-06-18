@@ -24,7 +24,7 @@ nrl <- apply(-anomaly(Tx),2,function(x) length(records(x))/log(sum(is.finite(x))
 
 tmax.stats <- data.frame(mean=ave,std=std,max=mx,min=mn,trend=td,
                          lon=lon(Tx),lat=lat(Tx),alt=alt(Tx),
-                         loc=loc(Tx),stid=stid(Tx),lastyear=ly,
+                         loc=loc(Tx),stid=stid(Tx),firstyear=fy,
                          lastyear=ly,nv=nv,n.warm.records=nrh,
                          n.cold.records=nrl)
 attr(tmax.stats,'period') <- paste(start(Tx),end(Tx),sep=' - ')
@@ -57,7 +57,7 @@ nrl <- apply(-anomaly(Tn),2,function(x) {x <- x[x>0]; length(records(x))/log(sum
 
 tmin.stats <- data.frame(mean=ave,std=std,max=mx,min=mn,trend=td,
                          lon=lon(Tn),lat=lat(Tn),alt=alt(Tn),
-                         loc=loc(Tn),stid=stid(Tn),lastyear=ly,
+                         loc=loc(Tn),stid=stid(Tn),firstyear=fy,
                          lastyear=ly,nv=nv,n.warm.records=nrh,
                          n.cold.records=nrl)
 attr(tmin.stats,'period') <- paste(start(Tn),end(Tn),sep=' - ')
@@ -88,7 +88,7 @@ nrl <- apply(-anomaly(T2m),2,function(x) length(records(x))/log(sum(is.finite(x)
 
 t2m.stats <- data.frame(mean=ave,std=std,max=mx,min=mn,trend=td,
                          lon=lon(T2m),lat=lat(T2m),alt=alt(T2m),
-                         loc=loc(T2m),stid=stid(T2m),lastyear=ly,
+                         loc=loc(T2m),stid=stid(T2m),firstyear=fy,
                          lastyear=ly,nv=nv,n.warm.records=nrh,
                          n.cold.records=nrl)
 attr(t2m.stats,'period') <- paste(start(T2m),end(T2m),sep=' - ')
@@ -124,7 +124,7 @@ lr <- apply(Pr,2,'lastrains')
 precip.stats <- data.frame(mean=ave,std=std,max=mx,min=mn,
                            trend = td,fw.trend=tdwf,mu.trend=tdmu,
                          lon=lon(Pr),lat=lat(Pr),alt=alt(Pr),
-                         loc=loc(Pr),stid=stid(Pr),lastyear=ly,
+                         loc=loc(Pr),stid=stid(Pr),firstyear=fy,
                          lastyear=ly,nv=nv,n.records=nr,
                          lastrain=lr)
 attr(precip.stats,'period') <- paste(start(Pr),end(Pr),sep=' - ')

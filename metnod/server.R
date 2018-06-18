@@ -21,80 +21,49 @@ server <- function(input, output, session) {
     ID <- which(station_id == event$id)
     print('observeEvent'); print(ID)
     
-    selectedLoc <- subset.station(y, is = ID) 
-   
+
     updateSelectInput(session,inputId = 'location',
-                      choices = toupper(esd::loc(selectedLoc)))  
+                      choices = toupper(locatins))  
     #print(paste('Updated ',toupper(loc(y))))
   })
   
   # Computing indices
   vals <- reactive({
     
-    y <- switch(input$ci,
-                'mdp'=pre,'mwdm'=pre,'mwdf'=pre,'rprob'=pre,
-                'tmax'=tmax,'tmin'=tmin,'tmaxa'=tmax,'tmina'=tmin)
-    location <- loc(y)
-    station_id <- stid(y)
-    startyr <- as.numeric(firstyear(y))
-    endyr <- as.numeric(lastyear(y))
-    y <- esd::subset.station(y, it = input$dateRange)
-    ## Allow for plotting anomalies:
-    #if (sum(is.element(input$ci,c('tmaxa','tmina')))>0) y <- esd::anomaly(y)
-    if (substr(input$season,1,6) != 'Annual')
-      y <- esd::subset.station(y, it = tolower(substr(input$season,1,3)))
-    
-    # mean daily precipitation
-    if ( (input$statistic == 'mean') &  (sum(is.element(input$ci,c('mdp','rprob')))>0) )
-      return(apply(annual(y,FUN='sum',nmin=30),2,FUN='mean',na.rm=TRUE)) else
-    if ( (input$statistic == 'mean') &  (sum(is.element(input$ci,c('tmax','tmin','tmaxa','tmina')))>0) )
-          return(apply(annual(y,FUN='mean',nmin=30),2,FUN='mean',na.rm=TRUE)) else
-    if ( (input$statistic == 'trend') &  (input$ci == 'mdp') )
-      return(apply(annual(y,FUN='sum',nmin=30),2,FUN='trend.coef',na.rm=TRUE)) else
-    if ( (input$statistic == 'mean') &  (input$ci == 'mwdm') )
-      return(apply(annual(y,FUN='wetmean',nmin=30,threshold = thresh()),2,FUN='mean',na.rm=TRUE)) else
-    if ( (input$statistic == 'trend') &  (input$ci == 'mwdm') )
-      return(apply(annual(y,FUN='wetmean',nmin=30,threshold = thresh()),2,FUN='tend.coef',na.rm=TRUE)) else
-    if ( (input$statistic == 'mean') &  (input$ci == 'mwdf') )
-      return(apply(annual(y,FUN='wetfreq',nmin=30,threshold = thresh()),2,FUN='mean',na.rm=TRUE)) else
-    if ( (input$statistic == 'trend') &  (input$ci == 'mwdf') )
-      return(apply(annual(y,FUN='wetfreq',nmin=30,threshold = thresh()),2,FUN='tend.coef',na.rm=TRUE)) else
-    if ( (input$statistic == 'trend') &  
-         (sum(is.element(input$ci,c('tmax','tmin','tmaxa','tmina')))>0) )
-          return(apply(annual(y,FUN='mean',nmin=30),2,FUN='trend.coef',na.rm=TRUE)) else
-    if (input$statistic == 'years') 
-      return(lastyear(y) - firstyear(y) + 1) else 
-    if (input$statistic == 'maximum') 
-          return(apply(coredata(y),2,FUN='max',na.rm=TRUE)) else 
-    if (input$statistic == 'minimum') 
-          return(apply(coredata(y),2,FUN='min',na.rm=TRUE)) else  
-    if (input$statistic == 'range') 
-          return(apply(coredata(y),2,FUN='max',na.rm=TRUE) - apply(coredata(y),2,FUN='min',na.rm=TRUE))
+    Y <- switch(input$ci,
+                'mdp'=precip.stats,'mwdm'=precip.stats,'mwdf'=preci.stats,'rprob'=precip.stats,
+                'tmax'=tmax.stats,'tmin'=tmin.stats,'tmaxa'=tmax.stats,'tmina'=tmin.stats)
+    locations <- Y$loc
+    station_id <- Y$stid
+    startyr <- Y$firstyear
+    endyr <- Y$lastyear
+    Z <- eval(parse(text=paste('Y$',input$statistic,sep='')))
+    print(paste('Y$',input$statistic,sep=''))
+    return(Z) 
     })
   
   
   ## The map panel 
   output$map <- renderLeaflet({
     
-    y <- switch(input$ci,
-                'mdp'=pre,'mwdm'=pre,'mwdf'=pre,'rprob'=pre,
-                'tmax'=tmax,'tmin'=tmin,'tmaxa'=tmax,'tmina'=tmin)
+    Y <- switch(input$ci,
+                'precip'=precip.stats,'tmax'=tmax.stats,'tmin'=tmin.stats,'t2m'=t2m.stats)
     pal <- colorBin(colscal(col = 't2m',n=100,rev = is.precip(y)[1]),
                     vals(),bins = 10,pretty = TRUE)
-    location <- loc(y)
-    station_id <- stid(y)
-    startyr <- as.numeric(firstyear(y))
-    endyr <- as.numeric(lastyear(y))
+    locations <- Y$loc
+    station_id <- Y$stid
+    startyr <- Y$firstyear
+    endyr <- Y$lastyear
     
     statistic <- switch(input$statistic,
-                        'mean' = paste('mean (',unit(y)[1],')',sep=''),
-                        'trend' = paste('trend (',unit(y)[1],'/decade)',sep=''),
+                        'mean' = paste('mean (',unit(y),')',sep=''),
+                        'trend' = paste('trend (',unit(y),'/decade)',sep=''),
                         'year' = 'year')
     #print(statistic)
     
     leaflet() %>% 
-      addCircleMarkers(lng = lon(y), # longitude
-                       lat = lat(y),fill = TRUE, # latitude
+      addCircleMarkers(lng = Y$lon, # longitude
+                       lat = Y$lat,fill = TRUE, # latitude
                        label = as.character(round(vals(),digits = 2)),
                        labelOptions = labelOptions(direction = "right",textsize = "12px",opacity=0.6),
                        popup = location,popupOptions(keepInView = TRUE),
@@ -108,7 +77,7 @@ server <- function(input, output, session) {
                        #addProviderTiles(providers$Stamen.TonerLite,
                        options = providerTileOptions(noWrap = TRUE)
       ) %>%
-      setView(lat=median(lat(y)),lng = median(lon(y)), zoom = 6)
+      setView(lat=median(Y$lat),lng = median(Y$lon), zoom = 6)
   })
   
   # Show a popup at the given location
@@ -116,20 +85,19 @@ server <- function(input, output, session) {
     station_id <- stid(y)
     #print(station_id)
     ID <- which(station_id == stid)
-    selectedLoc <- subset.station(y, is = ID) 
    # print(c(loc(y)[ID],location[ID],firstyear(y)[ID],startyr[ID],endyr[ID],ID,stid))
 
-    selLon <- as.numeric(levels(factor(round(lon(selectedLoc),digits = 2))))
-    selLat <- as.numeric(levels(factor(round(lat(selectedLoc),digits = 2))))
-    selAlt <- as.numeric(levels(factor(alt(selectedLoc))))
+    selLon <- as.numeric(levels(factor(round(lon(y),digits = 2))))
+    selLat <- as.numeric(levels(factor(round(lat(y),digits = 2))))
+    selAlt <- as.numeric(levels(factor(alt(y))))
     content <- paste(sep = "<br/>",
                      tags$strong(HTML(toupper(location[ID]))),
                      tags$strong(HTML(paste('LON ',selLon,'W',sep=''), paste(' LAT ',selLat,'N',sep=''), paste(' ALT ',selAlt,'m',sep=''))), tags$br(),
-                     sprintf("Station ID: %s", as.character(stid(selectedLoc))),
-                     sprintf("Parameter: %s", paste(toupper(varid(selectedLoc)),collapse = ',')),
+                     sprintf("Station ID: %s", as.character(stid(y))),
+                     sprintf("Parameter: %s", paste(toupper(varid(y)),collapse = ',')),
                      sprintf("Start year: %s", paste(startyr[ID],collapse = ',')),
                      sprintf("End year: %s", paste(endyr[ID],collapse = ',')),
-                     sprintf("Data provider: %s", paste(attr(selectedLoc,'source'),collapse = ',')))
+                     sprintf("Data provider: %s", paste(attr(y,'source'),collapse = ',')))
     
     leafletProxy("map") %>% addPopups(lng, lat, content,layerId = stid)
   }
@@ -155,49 +123,44 @@ server <- function(input, output, session) {
   # ## Data Explorer ###########################################
   # 
   observe({
-    #selectedLoc <- input$location
-    y <- switch(input$ci,
-                'mdp'=pre,'mwdm'=pre,'mwdf'=pre,'rprob'=pre,
-                'tmax'=tmax,'tmin'=tmin,'tmaxa'=tmax,'tmina'=tmin)
-    location <- meta$loc
-    station_id <- meta$stid
-    startyr <- meta$firstyear
-    endyr <- meta$lastyear
+    Y <- switch(input$ci,
+                'precip'=precip.stats,'tmax'=tmax.stats,'tmin'=tmin.stats,'t2m'=t2m.stats)
+    fname <- switch(input$ci,
+                    'precip'='data/precip.metnod.nc','tmax'='data/tmax.metnod.nc',
+                    'tmin'='data/tmin.metnod.nc','t2m'='data/t2m.metnod.nc')
+    pal <- colorBin(colscal(col = 't2m',n=100,rev = is.precip(y)[1]),
+                    vals(),bins = 10,pretty = TRUE)
+    locations <- Y$loc
+    station_id <- Y$stid
+    startyr <- Y$firstyear
+    endyr <- Y$lastyear
     
     print(location)
     ID <- which(tolower(input$location) == tolower(location))
     #print(station_id)
     #print('Data Explorer'); print(ID); print(input$location)
     if (is.null(ID)) ID <- 1
-    #selectedStid <- station_id[which(tolower(input$location) == tolower(location))]
+    selectedStid <- station_id[which(tolower(input$location) == tolower(location))]
     
-    ## Allow for plotting anomalies:
-    #if (sum(is.element(input$ci,c('tmaxa','tmina')))>0) y <- esd::anomaly(y)
+    y <- retrieve.station(fname,stid=selectedStid)
+    y <- subset(y,it = input$dateRange)
+    if (input$aspect =='anomaly') y <- anomaly(y)
     
-    ## Select one station
-    selectedLoc <- subset(y,is = ID)   
-    selectedLoc <- subset(selectedLoc,it = input$dateRange)
+    if (substr(input$season,1,6) != 'All')
+          y <- esd::subset.station(y,it = tolower(substr(input$season,1,3))) 
     
-    if (substr(input$season,1,6) != 'Annual')
-      if (substr(input$season,1,5) != 'rainy')
-          selectedLoc <- esd::subset.station(selectedLoc,it = tolower(substr(input$season,1,3))) else
-          selectedLoc <- esd::subset.station(selectedLoc,it = c('Oct','Nov','Dec','Jan','Feb','Mar'))
-    
-    leafletProxy("map",data = selectedLoc) %>% clearPopups() %>% 
-      addCircles(lng = lon(selectedLoc), lat = lat(selectedLoc), color = 'red', layerId = 'selectID', weight = 12)
+    leafletProxy("map",data = y) %>% clearPopups() %>% 
+      addCircles(lng = lon(y), lat = lat(y), color = 'red', layerId = 'selectID', weight = 12)
     isolate({
-      showMetaPopup(stid=stid(selectedLoc),lat=lat(selectedLoc), lng = lon(selectedLoc))
+      showMetaPopup(stid=stid(y),lat=lat(y), lng = lon(y))
     })
     
     timeseries <- switch(input$ci,
-    'mdp'=selectedLoc,
-    'mwdm'=annual(selectedLoc, FUN='wetmean', nmin=30, threshold = thresh()),
-    'mwdf'=annual(selectedLoc, FUN='wetfreq', nmin=30, threshold = thresh()),
-    'ywo'=selectedLoc,
-    'tmax'=selectedLoc,
-    'tmin'=selectedLoc,
-    'tmaxa'=anomaly(selectedLoc),
-    'tmina'=anomaly(selectedLoc),
+    'mean'=y,'stdv'=y,
+    'mu'=annual(y, FUN='wetmean', nmin=30, threshold = thresh()),
+    'fw'=annual(y, FUN='wetfreq', nmin=30, threshold = thresh()),
+    'max'=y,
+    'min'=y,
     'rprob'=NULL)
     
     output$plotstation <- renderPlot({
@@ -209,42 +172,34 @@ server <- function(input, output, session) {
                    }
                    })
       #browser()
-      if (is.null(timeseries)) esd::test.rainequation(selectedLoc,x0=30) else {
+      if (is.null(timeseries)) esd::test.rainequation(y,x0=30) else {
         esd::plot.station(timeseries, map.show = FALSE, new=FALSE,main=loc(timeseries),
                           ylab = paste(varid(timeseries),' (',unit(timeseries),')',sep=''))
         lines(trend(timeseries),lty=2)
         grid()
       }
     })
+  
+  
+  output$histstation <- renderPlot({
+    withProgress(message = 'Updating ...',
+                 detail = 'This may take a while...', value = 0,
+                 { for (i in 1:15) {
+                   incProgress(1/15)
+                   Sys.sleep(0.25)
+                 }
+                 })
+    if (is.null(timeseries)) esd::test.rainequation(y,x0=30) else {
+      hist(timeseries, main=loc(timeseries),col='grey',freq=FALSE,
+           xlab = paste(varid(timeseries),' (',unit(timeseries),')',sep=''))
+      grid()
+    }
+  })
+  
   })
   
   thresh <- reactive({
     return(as.numeric(input$thresh))
   })
   
-
-#    output$plotncwd <- renderPlot({
-#      
-#      leafletProxy("map",data = selectedLoc) %>% clearPopups() %>% 
-#        addCircles(lng = lon(selectedLoc), lat = lat(selectedLoc), color = 'red', layerId = 'selectID', weight = 12)
-#      isolate({
-#        showMetaPopup(stid=stid(selectedLoc),lat=lat(selectedLoc), lng = lon(selectedLoc))
-#      })
-#      esd::plot.station(ncwd,new=FALSE,map.show = FALSE,errorbar = TRUE,col = 'green')
-#      lines(trend(ncwd),lty = 5,col = 'darkgreen')
-#      title('Annual means of wet spell length')
-#      })
-#    
-#    output$rainequation <- renderPlot({
-#      
-#      leafletProxy("map",data = selectedLoc) %>% clearPopups() %>% 
-#        addCircles(lng = lon(selectedLoc), lat = lat(selectedLoc), color = 'red', layerId = 'selectID', weight = 12)
-#      isolate({
-#        showMetaPopup(stid=stid(selectedLoc),lat=lat(selectedLoc), lng = lon(selectedLoc))
-#      })
-#      esd::test.rainequation(ncwd,threshold=30)
-#      title('Probability of heavy rainfall')
-#    })
-#    
-#  }) 
 }
