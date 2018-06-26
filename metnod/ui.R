@@ -1,3 +1,5 @@
+## See comments and explanations in global.R
+## Rasmus Benestad
 # Load libraries
 library(shiny)
 library(shinydashboard)
@@ -5,25 +7,22 @@ library(leaflet)
 library(esd)
 
 
-ci <- c(
-  "Precipiation" = "precip",
-  "Daily mean temperature" = 't2m',
-  "Daily maximum temperature" = "tmax",
-  "Daily minimum temperature"="tmin")
+ci <- c(1:length(varids)); names(ci) <- varids
 
-sea <- c('All','djf','mam','jja','son',month.name)
-sta <- names(meta)
+sea <- c('All year'='all','December-February'='DJF',
+         'March-May'='MAM','June-August'='JJA','September-November'='SON')
 
 r_colors <- rgb(t(col2rgb(colors()) / 255))
 names(r_colors) <- colors()
 
 ui <- dashboardPage(
-  dashboardHeader(title = 'MET / Climate Mapping tool v0.1'),
+  skin="green",
+  dashboardHeader(title = 'MET Norway / Climate record explorer v0.2'),
   dashboardSidebar(
                    selectInput("ci", "Climate Index", choices= ci),
-                   selectInput("statistic", "Statistic shown in map", choices= sta),
-                   selectInput("location", "Location", choices= locations),
-                   selectInput("aspect", "Aspect", choices= c("original","anomaly"),selected = 1),
+                   selectInput("statistic", "Statistic shown in map", choices= stattype,selected='mean'),
+                   selectInput("location", "Location", choices= Y$location, selected='Oslo - blind'),
+                   #selectInput("aspect", "Aspect", choices= c("original","anomaly"),selected = 1),
                    h5("Filter by:"), 
                    dateRangeInput('dateRange',
                                   label = 'Time period',
@@ -33,20 +32,18 @@ ui <- dashboardPage(
                    selectInput("thresh", "Threshold value in mm", choices = c(0.1,0.5,1,5,10),selected=3)
                    ),
   dashboardBody(
-    
-
     fluidPage( 
-      box(title='Station network',status = "primary",collapsed = FALSE, 
+      box(title='Station network',status = "success",collapsed = FALSE, 
           collapsible = TRUE, width="100%", solidHeader = TRUE, 
           leafletOutput("map",height = 500))
     ),
     fluidPage(
-              box(title='Time series (past weather)',status = "primary",collapsed = FALSE, 
+              box(title='Time series (past weather)',status = "success",collapsed = FALSE, 
                   collapsible = TRUE, width="100%", solidHeader = TRUE, 
                   plotOutput("plotstation", height = 360,width = '100%'))
   ),
   fluidPage(
-    box(title='Statistical distribution (past climate)',status = "primary",collapsed = TRUE, 
+    box(title='Statistical distribution (past climate)',status = "success",collapsed = TRUE, 
         collapsible = TRUE, width="100%", solidHeader = TRUE, 
         plotOutput("histstation", height = 360,width = '100%'))
   )

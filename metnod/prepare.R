@@ -9,7 +9,7 @@ lastrains <- function(x,x0=1,uptodate=TRUE,verbose=FALSE) {
   return(z)
 }
 
-## Maximim temperature
+## Maximum temperature
 Tx <- retrieve.station('~/git/esd_Rshiny/metnod/data/tmax.metnod.nc')
 ave <- apply(Tx,2,'mean',na.rm=TRUE)
 std <- apply(anomaly(Tx),2,'sd',na.rm=TRUE)
