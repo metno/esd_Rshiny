@@ -11,6 +11,7 @@ ci <- c(1:length(varids)); names(ci) <- varids
 
 sea <- c('All year'='all','December-February'='DJF',
          'March-May'='MAM','June-August'='JJA','September-November'='SON')
+thresholds <- seq(10,50,by=10)
 
 r_colors <- rgb(t(col2rgb(colors()) / 255))
 names(r_colors) <- colors()
@@ -20,16 +21,16 @@ ui <- dashboardPage(
   dashboardHeader(title = 'MET Norway / Climate record explorer v0.2'),
   dashboardSidebar(
                    selectInput("ci", "Climate Index", choices= ci),
-                   selectInput("statistic", "Statistic shown in map", choices= stattype,selected='mean'),
+                   selectInput("statistic", "Statistic shown in map", choices= c(stattype,'Expected # X > x'),selected='mean'),
                    selectInput("location", "Location", choices= Y$location, selected='Oslo - blind'),
-                   #selectInput("aspect", "Aspect", choices= c("original","anomaly"),selected = 1),
+                   selectInput("aspect", "Aspect", choices= c("original","anomaly"),selected = 1),
                    h5("Filter by:"), 
                    dateRangeInput('dateRange',
                                   label = 'Time period',
                                   start = as.Date('1951-01-01'),
                                    end = date(),startview = 'year'),
                    selectInput("season", "Season", choices= sea),
-                   selectInput("thresh", "Threshold value in mm", choices = c(0.1,0.5,1,5,10),selected=3)
+                   selectInput("thresh", "Threshold value in mm", choices = thresholds,selected=3)
                    ),
   dashboardBody(
     fluidPage( 
