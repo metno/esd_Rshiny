@@ -18,7 +18,7 @@ getstattype <- function(fname) {
   doubleuscrs <- unlist(lapply(gregexpr('_',names(meta)),length)) > 1
   names(meta)[doubleuscrs] <- sub('_','-',names(meta)[doubleuscrs])
   names(meta) <- paste(names(meta),'_',sep='')
-  stattype <- rownames(table(substr(names(meta),1,regexpr('_',names(meta))-1)[sapply(Y,is.numeric)]))
+  stattype <- rownames(table(substr(names(meta),1,regexpr('_',names(meta))-1)[sapply(meta,is.numeric)]))
   stattype <- stattype[!is.element(stattype,c('station.id'))]
   stattype <- sub('-','_',stattype)
   return(stattype)
