@@ -23,8 +23,8 @@ server <- function(input, output, session) {
     
     selectedLoc <- subset.station(y, is = ID) 
    
-    updateSelectInput(session,inputId = 'location',
-                      choices = toupper(esd::loc(selectedLoc)))  
+    updateSelectInput(session,inputId = 'location', choices=loc(y),
+                      selected = toupper(esd::loc(selectedLoc)))  
     #print(paste('Updated ',toupper(loc(y))))
   })
   

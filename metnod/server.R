@@ -18,11 +18,12 @@ server <- function(input, output, session) {
   
   observeEvent(input$map_marker_click,{
     #print("observeEvent() - click")
+    Y <- retrieve.stationsummary(fnames[as.numeric(input$ci)])
     event <- input$map_marker_click
     #print(paste('Updated ',input$location)); print(event$id)
     selected <- which(Y$station.id == event$id)
-    updateSelectInput(session,inputId = 'location',
-                      choices = toupper(Y$location[selected]))  
+    updateSelectInput(session,inputId = 'location',label='Sted',choices=Y$location,
+                      selected = Y$location[selected])  
   })
   
   # Computing indices
@@ -30,8 +31,12 @@ server <- function(input, output, session) {
     ## Get summary data from the netCDF file
     Y <- retrieve.stationsummary(fnames[as.numeric(input$ci)])
     print(paste('Y$',input$statistic,sep=''))
+    showseason <- switch(input$season,
+                         'all'='','DJF'='_DJF','MAM'='_MAM','JJA'='_JJA','SON'='_SON')
+    print(paste('Y$',input$statistic,showseason,sep=''))
     if (tolower(substr(input$statistic,1,8)!='expected')) 
-      Z <- eval(parse(text=paste('Y$',input$statistic,sep=''))) else {
+      Z <- eval(parse(text=paste('Y$',input$statistic,showseason,sep=''))) else {
+      #Z <- eval(parse(text=paste('Y$',input$statistic,sep=''))) else {
       if (is.precip(y)) Z <- switch(input$season,
                                      'all'=3.6525*Y$wetfreq*exp(-input$thresh/Y$wetmean),
                                      'DJF'=0.90*Y$wetfreq_DJF*exp(-input$thresh/Y$wetmean_DJF),
@@ -56,10 +61,12 @@ server <- function(input, output, session) {
     ## Get summary data from the netCDF file
     Y <- retrieve.stationsummary(fnames[as.numeric(input$ci)])
     ## Get the statistics to display
-    statistic <- eval(parse(text=paste('Y$',input$statistic,sep='')))
+    showseason <- switch(input$season,
+                         'all'='','DJF'='_DJF','MAM'='_MAM','JJA'='_JJA','SON'='_SON')
+    statistic <- eval(parse(text=paste('Y$',input$statistic,showseason,sep='')))
     pal <- colorBin(colscal(col = 't2m',n=100),
                     vals(),bins = 10,pretty = TRUE,reverse=is.precip(y)[1])
-    print('palette (map) - reversed?'); print(is.precip(y)[1])
+    print('palette (map) - reversed?'); print(is.precip(y)[1]); print(summary(statistic))
     
     leaflet() %>% 
       addCircleMarkers(lng = Y$longitude, # longitude
@@ -83,6 +90,7 @@ server <- function(input, output, session) {
   # Show a popup at the given location
   showMetaPopup <- function(stid, lat, lng) {
     #print(paste('showMetaPopup() ===',stid,round(lat,2),round(lng,2)))
+    Y <- retrieve.stationsummary(fnames[as.numeric(input$ci)])
     selLon <- round(Y$longitude[Y$station.id == stid],2)
     selLat <- round(Y$latitude[Y$station.id == stid],2)
     selAlt <- round(Y$altitude[Y$station.id == stid])
@@ -128,7 +136,13 @@ server <- function(input, output, session) {
     selectedStid <- Y$station.id[which(tolower(input$location) == tolower(Y$location))]
     ## Read single time series from the netCDF file
     print('selectedID'); print(selectedStid)
-    if (is.null(selectedStid) | length(selectedStid)!=1) {print('Something is wrong!');browser()}
+    if (is.null(selectedStid) | length(selectedStid)!=1) 
+    {
+      print(input$location);print('Something is wrong!'); 
+      if (is.null(selectedStid)) selectedStid <- Y$station.id[1] else
+      if (length(selectedStid)>1) selectedStid <- selectedStid[1] else
+        browser()
+      }
     y <- retrieve.station(fnames[as.numeric(input$ci)],stid=selectedStid,verbose=verbose)
     pal <- colorBin(colscal(col = 't2m',n=100),
                     vals(),bins = 10,pretty = TRUE,reverse = is.precip(y)[1])
@@ -136,23 +150,25 @@ server <- function(input, output, session) {
     if (is.precip(y)) thresholds <- seq(10,50,by=10) else thresholds <- seq(-30,30,by=5)
     y <- subset(y,it = input$dateRange)
   
+    print(input$aspect); print(input$season); print(input$statistic)
+    if (is.precip(y)) FUN='sum' else FUN='mean'
+    if (input$aspect=='anomaly') y <- anomaly(y) 
+    if (input$season != 'all') {
+      y <- subset(y,it=tolower(input$season)); nmin <-75
+      print(length(y)); print(nv(y))
+    } else nmin <- 300
+    timeseries <- y
+    if (sum(is.element(input$statistic,c('trend','mean')))>0) timeseries <- annual(y,FUN=FUN,nmin=nmin) else 
+      if (length(grep('wetfreq',input$statistic))>0) {
+        timeseries <- 100*annual(y,FUN='wetfreq',nmin=nmin)
+        attr(timeseries,'unit') <- '%'
+      } else if (length(grep('wetmean',input$statistic))>0) timeseries <- annual(y,FUN='wetmean',nmin=nmin)
+    
     leafletProxy("map",data = y) %>% clearPopups() %>% 
       addCircles(lng = lon(y), lat = lat(y), color = 'red', layerId = 'selectID', weight = 12)
     isolate({
       showMetaPopup(stid=stid(y),lat=lat(y), lng = lon(y))
     })
-    
-    print(input$aspect); print(input$season); print(input$statistic)
-    if (is.precip(y)) FUN='sum' else FUN='mean'
-    if (input$aspect=='anomaly') y <- anomaly(y) 
-    if (input$season != 'all') {y <- subset(y,it=input$season); nmin=75} else nmin=300
-    timeseries <- y
-    if (input$statistic=='trend') timeseries <- annual(y,FUN=FUN,nmin=nmin) else 
-      if (length(grep('wetfreq',input$statistic))>0) {
-        timeseries <- 100*annual(y,FUN='wetfreq',nmin=nmin)
-        attr(timeseries,'unit') <- '%'
-      } else
-        if (length(grep('wetmean',input$statistic))>0) timeseries <- annual(y,FUN='wetmean',nmin=nmin)
     
     output$plotstation <- renderPlot({
       withProgress(message = 'Updating ...',
@@ -164,7 +180,13 @@ server <- function(input, output, session) {
                    })
      
       if (tolower(substr(input$statistic,1,8)=='expected')) {
-        if (is.precip(y)) timeseries <- test.rainequation(y,x0=input$thresh) else {
+        if (is.precip(y)) {
+          timeseries <- test.rainequation(y,x0=input$thresh,plot=FALSE) 
+          plot(merge(ndays*timeseries[,1],timeseries[,1]),lwd=c(3,2),col=c('black','red'),
+               'Main= Expected and counted number of days',ylab='count',xlab='',
+               sub=paste('Days with more than',input$thresh,unit(y)))
+          grid()
+          } else {
           ave <- annual(y,FUN='mean',nmin=nmim); std <- annual(anomaly(y,FUN='sd',nmin=nmin))
           nv <- annual(y,FUN='nv')
           obs <- annual(y,FUN='count',x0=input$thresh)
@@ -189,12 +211,12 @@ server <- function(input, output, session) {
                    Sys.sleep(0.25)
                  }
                  })
-    mx <- max(abs(timeseries),na.rm=TRUE)
-    if (is.precip(timeseries)) breaks = seq(0,mx,by=1) else
+    mx <- ceiling(1.1*max(abs(y),na.rm=TRUE))
+    if (is.precip(y)) breaks = seq(0,mx,by=1) else
                                breaks = seq(-mx,mx,by=0.25)
     col <- rainbow(length(breaks)-1)
-    hist(timeseries, breaks=breaks,col=col,main=loc(timeseries),freq=FALSE,
-         xlab = paste(varid(timeseries),' (',unit(timeseries),')',sep=''))
+    hist(y, breaks=breaks,col=col,main=loc(y),freq=FALSE,
+         xlab = paste(varid(y),' (',unit(y),')',sep=''))
     grid()
   })
   

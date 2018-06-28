@@ -9,8 +9,8 @@ library(esd)
 
 ci <- c(1:length(varids)); names(ci) <- varids
 
-sea <- c('All year'='all','December-February'='DJF',
-         'March-May'='MAM','June-August'='JJA','September-November'='SON')
+sea <- c('All year'='all','Dec-Feb'='DJF',
+         'Mar-May'='MAM','Jun-Aug'='JJA','Sep-Nov'='SON',month.abb)
 thresholds <- seq(10,50,by=10)
 
 r_colors <- rgb(t(col2rgb(colors()) / 255))
