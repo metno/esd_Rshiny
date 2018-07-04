@@ -8,7 +8,7 @@
 ## extracted. Some numbers may be estimated, such as expected number of events per year: 365*Pr(X) -
 ## For temperature use the normal distribution, for precipitation use the "rain equation" - together 
 ## with the pre-computed summary statistics: (mean, sd) or (fw, mu)
-## Rasmus Benestad, 2018-06-21
+## Rasmus Benestad & Abdelkader Mezghani, 2018-06-21
 
 ## The esd-package is available from github.com/metno/esd
 library(esd)
@@ -26,6 +26,47 @@ getstattype <- function(fname) {
 
 print('---')
 verbose <-FALSE
+maintitle <- c('Meteorologisk institutt klimadata','','MET Norway / Climate record explorer')
+## Setting for menues etc. 
+ci <- c(1:length(varids)); names(ci) <- varids
+
+sea <- c('All year'='all','Dec-Feb'='DJF',
+         'Mar-May'='MAM','Jun-Aug'='JJA','Sep-Nov'='SON')
+seaTS <- c('All year'='all','Dec-Feb'='DJF',
+           'Mar-May'='MAM','Jun-Aug'='JJA','Sep-Nov'='SON',month.abb)
+thresholds <- seq(10,50,by=10)
+timespace <- c('timeseries','map statistics')
+
+languages <- 1:3; names(languages) <- c('Bokmål','Nynorsk','English')
+maintitle <- c('Meteorologisk institutt klimadata','','MET Norway Climate records')
+maptitle <- c('Velg sted','','Location selection')
+tstitle <- c('Tidsutvikling (historisk vær)','','Time series (past weather)')
+htitle <- c('Statistisk karakter (tidligere klima)','','Statistical distribution (past climate)')
+cftitle <- c('Om portalen & Tilbakemeldigner','','About & feedback')
+lab.timescale <- c("Tidsskala","","Time scale")
+lab.timespace <- c("Tid/rom","","Time or Space")
+lab.season <- c("Årstid","","Season")
+lab.highlight <- c("Uthev","","Higlight")
+lab.aspect <- c("Perspektiv","","Aspect")
+lab.timeperiod <- c("Tidsperiode","","Time period")
+lab.theshold <- c("Terskelverdi","","Threshold")
+lab.location <- c("Sted","","Location")
+lab.statitics <- c("Statistikk vist på kartet","","Statistics shown in map")
+lab.date <- c("Bestemt dato","Dato","A specific day")
+aspectsP <- c("sum","wetfreq","wetmean","number of days")
+aspectnameP <- rbind(c("Nedbørsmengde","Nedbørsfrekvens","Nedbørsintensitet","Antall dager med mye nedbør"),
+                     c("","","",""),
+                     c("Total amount","Rain frequency","Mean rain intensity","Days with heavy rain"))
+aspectsT <- c("mean","anomaly","number of days")
+aspectnameT <- rbind(c("Gjennomsnitt","Avvik fra normalen","Antall dager"),
+                     c("","","",""),
+                     c("Mean","Anomaly","Number of days"))
+aspects <- aspectsP
+tscales <- c("day","month","season","year"); names(tscales) <- tscales
+stats <- c(stattype,'Number_of_days','Specific_day')
+higlighting <- c('None','Top 10','Low 10')
+lingo <- 1
+first.location <- 'Oslo - blind'
 
 ## Get the file names of the data
 fnames <- list.files(path='data',pattern='.nc',full.names = TRUE)
