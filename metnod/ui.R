@@ -1,10 +1,7 @@
 ## See comments and explanations in global.R
 ## Rasmus Benestad
 # Load libraries
-library(shiny)
-library(shinydashboard)
-library(leaflet)
-library(esd)
+
 
 
 r_colors <- rgb(t(col2rgb(colors()) / 255))
@@ -28,7 +25,7 @@ ui <- dashboardPage(
                  selectInput("statistic", textOutput("statistics.label"), 
                              choices= stats,selected='mean'),
                  selectInput("season", textOutput("season.label"), choices= sea),
-                 selectInput("higlight", lab.highlight, choices= higlighting),
+                 selectInput("higlight", textOutput("highlight.label"), choices= higlighting),
                  conditionalPanel(condition="input.statistic == 'specific day'",
                                   dateInput("it",textOutput("specific.date"), 0)))
       )
@@ -40,21 +37,15 @@ ui <- dashboardPage(
           column(3,
                  selectInput("tscale", textOutput("timescale.label"), choices= tscales,selected = tscales[1]),
                  selectInput("aspect", textOutput("aspect.label"), choices= aspects,selected = aspects[1]),
-                 selectInput("highlightTS", lab.highlight, choices= higlighting),
+                 selectInput("highlightTS", textOutput("highlightTS.label"), choices= higlighting),
+                 selectInput("seasonTS", textOutput("seasonTS.label"), choices= seaTS),
                  # conditionalPanel(condition=c("input.ci == '1'","input.tscale == 'month'",
-                 #                              "input.tscale == 'season'","input.tscale == 'year'"),
-                 #                  selectInput("aspect", "Aspect", choices= aspectsP,selected = aspectsP[1])),
-                 # conditionalPanel(condition="input.ci == '2'",
-                 #                  selectInput("aspect", "Aspect", choices= aspectsT,selected = aspectsT[1])),
-                 # conditionalPanel(condition="input.ci == '3'",
-                 #                  selectInput("aspect", "Aspect", choices= aspectsT,selected = aspectsT[1])),
-                 # conditionalPanel(condition="input.ci == '4'",
-                 #                  selectInput("aspect", "Aspect", choices= aspectsT,selected = aspectsT[1])),
+                 #                               "input.tscale == 'season'","input.tscale == 'year'"),
+                 #                   selectInput("aspect", "Aspect", choices= aspects,selected = aspects[1])),
+                 # conditionalPanel(condition=c("input.ci == '2'","input.ci == '3'","input.ci == '4'"),
+                 #                   selectInput("aspect", "Aspect", choices= aspects,selected = aspects[1])),
                  conditionalPanel(condition="input.aspect == 'number of days'",
                                   numericInput("x0",textOutput("threshold"), 0)) #,
-                 #selectInput("seasonTS", textOutput("season.label"), choices= seaTS,selected=seaTS[1]),
-                 ## Only show threshold if number of days
-                 #selectInput("thresh", "Threshold value in mm", choices = thresholds,selected=3)
           ))
     ),
   fluidPage(
@@ -67,8 +58,6 @@ ui <- dashboardPage(
                               label = textOutput("timeperiod.label"),
                               start = as.Date('1951-01-01'),
                               end = date(),startview = 'year')
-               ## Only show threshold if number of days
-               #selectInput("thresh", "Threshold value in mm", choices = thresholds,selected=3)
         ))
   ),
   fluidPage(

@@ -1,10 +1,6 @@
 ## See comments and explanations in global.R
 ## Rasmus Benestad
 
-library(shiny)
-library(esd)
-library(leaflet)
-library(plotly)
 
 # Load the ggplot2 package which provides
 # the 'mpg' dataset.
@@ -68,6 +64,7 @@ server <- function(input, output, session) {
   ## The map panel 
   output$map <- renderLeaflet({
     ## Get summary data from the netCDF file
+    print(input$ci)
     Y <- retrieve.stationsummary(fnames[as.numeric(input$ci)])
     ## Get the statistics to display
     showseason <- switch(input$season,
@@ -110,7 +107,7 @@ server <- function(input, output, session) {
   
   # Show a popup at the given location
   showMetaPopup <- function(stid, lat, lng) {
-    #print(paste('showMetaPopup() ===',stid,round(lat,2),round(lng,2)))
+    print(paste('showMetaPopup() ===',stid,round(lat,2),round(lng,2)))
     Y <- retrieve.stationsummary(fnames[as.numeric(input$ci)])
     selLon <- round(Y$longitude[Y$station.id == stid],2)
     selLat <- round(Y$latitude[Y$station.id == stid],2)
@@ -134,11 +131,15 @@ server <- function(input, output, session) {
   
   observeEvent(input$lingo, {
     tscales <- c("day","month","season","year")
-    names(tscales) <- switch(tolower(input$lingo),
-                             'bokmål'=c("dag","måned","sesong","år"),
-                             'nynorsk'=c("dag","måned","sesong","år"),
-                             'english'=c("day","month","season","year"))
+    names(tscales) <- timescales[as.numeric(input$lingo),]
     updateSelectInput(session=session,inputId="tscale",choices=tscales,selected=tscales[1])
+  })
+
+  observeEvent(input$lingo, {
+    varids <- 1:length(varids)
+    names(varids) <- varnames[as.numeric(input$lingo),]
+    print(varids)
+    updateSelectInput(session=session,inputId="ci",choices=varids)
   })
   
   observeEvent(input$ci, {
@@ -186,7 +187,7 @@ server <- function(input, output, session) {
       print(input$location);print('Something is wrong!'); 
       if (is.null(selectedStid)) selectedStid <- Y$station.id[1] else
         if (length(selectedStid)>1) selectedStid <- selectedStid[1] else
-          browser()
+          selectedStid <- Y$station.id[1]
     }
     y <- retrieve.station(fnames[as.numeric(input$ci)],stid=selectedStid,verbose=verbose)
     pal <- colorBin(colscal(col = 't2m',n=100),
@@ -196,7 +197,7 @@ server <- function(input, output, session) {
     if (is.precip(y)) thresholds <- seq(10,50,by=10) else thresholds <- seq(-30,30,by=5)
     y <- subset(y,it = input$dateRange)
     
-    print(input$season); print(input$tscale)
+    #print(input$season); print(input$tscale)
     if (is.precip(y)) {
       if (input$aspect=='wetmean') FUN<-'wetmean' else
         if (input$aspect=='wetfreq') FUN<-'wetfreq' else
@@ -211,9 +212,9 @@ server <- function(input, output, session) {
                 'day'=y,'month'=as.monthly(y,FUN=FUN),
                 'season'=as.4seasons(y,FUN=FUN),'year'=as.annual(y,FUN=FUN))
     #if (is.T(y)) browser()
-    print(c(aspects,input$aspect)); print(input$ci)
+    #print(c(aspects,input$aspect)); print(input$ci)
     if (input$aspect=='anomaly') y <- anomaly(y)
-    if (input$season != 'all') y <- subset(y,it=tolower(input$seasonTS))
+    if (input$seasonTS != 'all') y <- subset(y,it=tolower(input$seasonTS))
     
     ## Marking the top and low 10 poits
     if (tolower(input$highlightTS)=='top 10') highlight10 <- y[order(coredata(y),decreasing=TRUE)[1:10]] else
@@ -305,6 +306,10 @@ server <- function(input, output, session) {
       lab.threshold[as.numeric(input$lingo)]})
     output$specificdate <- renderText({
       lab.date[as.numeric(input$lingo)]})
+    output$highlight.label <- renderText({
+      lab.highlight[as.numeric(input$lingo)]})
+    output$highlightTS.label <- renderText({
+      lab.highlight[as.numeric(input$lingo)]})
     
     thresh <- reactive({
       return(as.numeric(input$thresh))
