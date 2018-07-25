@@ -72,18 +72,6 @@ vari2name <- function(x,vars=c('pre','t2m','tmax','tmin'),
   return(y)
 }
 
-
-## Plain text description of the statistics presented on the map for ordinary people.
-explainstats <- function(x,stats,explanations,nc=3) {
-  y <- x
-  for (i in 1:length(x)) {
-    ii <- grep(tolower(substr(x[i],1,nc)),substr(vars,1,nc))
-    if (length(ii)>0) y[i] <- explanations[ii]
-  }
-  names(x) <- y
-  return(x)
-}
-
 print('---')
 verbose <-FALSE
 maintitle <- c('Meteorologisk institutt klimadata','','MET Norway / Climate record explorer')
@@ -154,10 +142,9 @@ print(stattype); print(varids)
 ## Get the names of locations, etc.
 Y <- retrieve.stationsummary(fnames[1])
 
-#print('---')
 y <- retrieve.station(fnames[1],stid=Y$station.id[Y$location=="Oslo - blind"],verbose=verbose)
 
-
+print('---')
 
 
 

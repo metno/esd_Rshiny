@@ -123,7 +123,7 @@ server <- function(input, output, session) {
   
   # Show a popup at the given location
   showMetaPopup <- function(stid, lat, lng) {
-    print(paste('showMetaPopup() ===',stid,round(lat,2),round(lng,2)))
+    #print(paste('showMetaPopup() ===',stid,round(lat,2),round(lng,2)))
     Y <- retrieve.stationsummary(fnames[as.numeric(input$ci)])
     #print("Y <- retrieve.stationsummary")
     selLon <- round(Y$longitude[Y$station.id == stid],2)
@@ -187,7 +187,7 @@ server <- function(input, output, session) {
     
     if (is.null(event))
       return()
-    print('Click --->'); print(event); print('<--- Click')
+    #print('Click --->'); print(event); print('<--- Click')
     isolate({
       showMetaPopup(stid=event$id,lat=event$lat, lng = event$lng)
     })
@@ -201,7 +201,7 @@ server <- function(input, output, session) {
   observe({
     Y <- retrieve.stationsummary(fnames[as.numeric(input$ci)])
     statistic <- vals()
-    print('Data Explorer from roll-down menu'); print(input$location)
+    #print('Data Explorer from roll-down menu'); print(input$location)
     selectedStid <- Y$station.id[which(tolower(input$location) == tolower(Y$location))]
     ## Read single time series from the netCDF file
     #print('selectedID'); print(selectedStid)
