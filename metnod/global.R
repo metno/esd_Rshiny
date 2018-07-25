@@ -18,7 +18,33 @@ library(leaflet)
 library(plotly)
 
 
-getstattype <- function(fname) {
+type2name <-function(stattype,lingo) {
+  type <- c("altitude","first.year","lastrains","last.year","latitude","longitude","max",           
+            "mean","min","number.valid","records","trend","trend_wetfreq","trend_wetmean", 
+            "wetfreq","wetmean","Number_of_days","Specific_day","sd")
+  names <- rbind(
+    c("Høyde over havet","Start år","Dager uten nedbør","Siste år","Breddegrad","Lengdegrad","Maksimumsverdi",           
+      "Gjennomsnitt","Minimumsverdi","Dager med data","Rekordstatistikk",
+      "Trend (per tiår)","Trend: dager med nedbør (%)","Trend: nedbørsintensitet", 
+      "Dager med nedbør (%)","Typisk nedbørsintensitet (mm/dag)",
+      "Antall dager over terskelverdi","Utvalgt dato","Standardavvik"),
+    c("Høyde over havet","Start år","Dager uten nedbør","Siste år","Breddegrad","Lengdegrad","Maksimumsverdi",           
+      "Gjennomsnitt","Minimumsverdi","Dager med data","Rekordstatistikk",
+      "Trend","Trend: dager med nedbør (%)","Trend: nedbørsintensitet", 
+      "Dager med nedbør (%)","Typisk nedbørsintensitet (mm/dag)",
+      "Antall dager over terskelverdi","Utvalgt dato","Standardavvik"),
+    c("Altitude","Start year","Days without precipitation","End year","Latitude","Longitude","Maximum",           
+      "Average","Minimum","Number of measurements","Record statistics",
+      "Trend (per decade)","Trend in wet days","Trend in rain intensity", 
+      "Number of wet days (%)","Mean rain intensity (mm/day)","Number of days above threshold",
+      "Specific date","Standard deviation")
+  )
+  matchingname <- names[as.numeric(lingo),]
+  descr <- matchingname[match(stattype,type)]
+  return(descr)
+}
+
+getstattype <- function(fname,lingo=NULL) {
   meta <- retrieve.stationsummary(fname)
   doubleuscrs <- unlist(lapply(gregexpr('_',names(meta)),length)) > 1
   names(meta)[doubleuscrs] <- sub('_','-',names(meta)[doubleuscrs])
@@ -26,9 +52,14 @@ getstattype <- function(fname) {
   stattype <- rownames(table(substr(names(meta),1,regexpr('_',names(meta))-1)[sapply(meta,is.numeric)]))
   stattype <- stattype[!is.element(stattype,c('station.id'))]
   stattype <- sub('-','_',stattype)
+  stattype <- c(stattype,'Number_of_days','Specific_day')
+  if (!is.null(lingo)) {
+    names(stattype) <- type2name(stattype,lingo)
+  }
   return(stattype)
 }
 
+## Plain text description of the statistics presented on the climate indicators for ordinary people.
 vari2name <- function(x,vars=c('pre','t2m','tmax','tmin'),
                       names=c('Precipitation','Daily mean temperature',
                                 'Daily max temperature','Daily min temperature'),nc=3) {
@@ -41,18 +72,28 @@ vari2name <- function(x,vars=c('pre','t2m','tmax','tmin'),
   return(y)
 }
 
+
+## Plain text description of the statistics presented on the map for ordinary people.
+explainstats <- function(x,stats,explanations,nc=3) {
+  y <- x
+  for (i in 1:length(x)) {
+    ii <- grep(tolower(substr(x[i],1,nc)),substr(vars,1,nc))
+    if (length(ii)>0) y[i] <- explanations[ii]
+  }
+  names(x) <- y
+  return(x)
+}
+
 print('---')
 verbose <-FALSE
 maintitle <- c('Meteorologisk institutt klimadata','','MET Norway / Climate record explorer')
-## Setting for menues etc. 
-ci <- c(1:length(varids)); names(ci) <- varids
 
 sea <- c('All year'='all','Dec-Feb'='DJF',
          'Mar-May'='MAM','Jun-Aug'='JJA','Sep-Nov'='SON')
 seaTS <- c('All year'='all','Dec-Feb'='DJF',
            'Mar-May'='MAM','Jun-Aug'='JJA','Sep-Nov'='SON',month.abb)
 thresholds <- seq(10,50,by=10)
-timespace <- c('timeseries','map statistics')
+timespace <- c('Timeseries selected in the box above','Statistics in the map')
 
 languages <- 1:3; language.names <- c('Bokmål','Nynorsk','English')
 maintitle <- c('Meteorologisk institutt klimadata','','MET Norway Climate records')
@@ -66,18 +107,18 @@ lab.season <- c("Årstid","Årstid","Season")
 lab.highlight <- c("Uthev","Uthev","Higlight")
 lab.aspect <- c("Perspektiv","Perspektiv","Aspect")
 lab.timeperiod <- c("Tidsperiode","Tidsperiode","Time period")
-lab.theshold <- c("Terskelverdi","Treskelverdi","Threshold")
+lab.threshold <- c("Terskelverdi","Treskelverdi","Threshold")
 lab.location <- c("Sted","Stad","Location")
 lab.statitics <- c("Statistikk vist på kartet","Statistikk vist på kartet","Statistics shown in map")
 lab.date <- c("Utvalgt dato","Utvald dato","A specific day")
 lab.highlight <- c('Uthev','Uthev','Highlight')
-aspectsP <- c("sum","wetfreq","wetmean","number of days")
+aspectsP <- c("sum","wetfreq","wetmean","Number_of_days")
 aspectnameP <- rbind(c("Nedbørsmengde","Nedbørsfrekvens","Nedbørsintensitet","Antall dager med mye nedbør"),
                      c("Nedbørsmengde","Nedbørsfrekvens","Nedbørsintensitet","Antall dager med mye nedbør"),
                      c("Total amount","Rain frequency","Mean rain intensity","Days with heavy rain"))
-aspectsT <- c("mean","anomaly","number of days")
-aspectnameT <- rbind(c("Gjennomsnitt","Avvik fra normalen","Antall dager"),
-                     c("Gjennomsnitt","Avvik fra normalen","Antall dager"),
+aspectsT <- c("mean","anomaly","Number_of_days")
+aspectnameT <- rbind(c("Måling/Gjennomsnitt","Avvik fra normalen","Antall dager"),
+                     c("Mæling/Gjennomsnitt","Avvik fra normalen","Antall dager"),
                      c("Mean","Anomaly","Number of days"))
 varnames=rbind(c('Nedbør','Middeltemperatur','Maksimumstemperatur','Minimumstemperatur'),
                c('Nedbør','Middeltemperatur','Maksimumstemperatur','Minimumstemperatur'),
@@ -85,9 +126,9 @@ varnames=rbind(c('Nedbør','Middeltemperatur','Maksimumstemperatur','Minimumstem
 timescales <- rbind(c('Dag','Måned','Sesong','År'),
                     c('Dag','Måned','Sesong','År'),
                     c('Day','Month','Season','Year'))
+lab.speficicday <- c('Utvalgt dag','Utvald dag','Specific day')
 aspects <- aspectsP
 tscales <- c("day","month","season","year"); names(tscales) <- tscales
-stats <- c(stattype,'Number_of_days','Specific_day')
 higlighting <- c('None','Top 10','Low 10')
 lingo <- 1
 first.location <- 'Oslo - blind'
@@ -103,6 +144,9 @@ varids <- substr(varids,1,regexpr('.',varids,fixed=TRUE)-1)
 names(varids) <- vari2name(varids)
 names(languages) <- language.names
 
+## Setting for menues etc. 
+ci <- c(1:length(varids)); names(ci) <- varids
+
 ## Extract information about summary statistics from the netCDF-files
 stattype <- getstattype(fnames[1])
 print(stattype); print(varids)
@@ -112,6 +156,7 @@ Y <- retrieve.stationsummary(fnames[1])
 
 #print('---')
 y <- retrieve.station(fnames[1],stid=Y$station.id[Y$location=="Oslo - blind"],verbose=verbose)
+
 
 
 
