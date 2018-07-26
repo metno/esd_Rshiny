@@ -21,14 +21,16 @@ ui <- dashboardPage(
       box(title=textOutput("maptitle"),status = "success",collapsed = FALSE, 
           collapsible = TRUE, width="100%", solidHeader = TRUE, 
           column(9,leafletOutput("map",height = 700)),
-          column(3,selectInput("location", textOutput("location.label"), 
+          column(3,selectInput("location", textOutput("locationlabel"), 
                                choices= Y$location, selected=first.location),
-                 selectInput("statistic", textOutput("statistics.label"), 
+                 selectInput("statistic", textOutput("statisticslabel"), 
                              choices= stattype,selected='mean'),
-                 selectInput("season", textOutput("season.label"), choices= sea),
+                 selectInput("season", textOutput("seasonlabel"), choices= sea),
                  conditionalPanel(condition="input.statistic == 'Specific_day'",
                                    dateInput("it",textOutput("daylabel"), value=Sys.Date()-1)),
-                 selectInput("higlight", textOutput("highlight.label"), choices= higlighting)
+                 selectInput("higlight", textOutput("highlightlabel"), choices= higlighting),
+                 sliderInput("statisticrange", "Range:", min = statisticmin, max=statisticmax, 
+                             value = c(statisticmin,statisticmax),sep='',round=TRUE)
                  )
       )
     ),
@@ -37,10 +39,10 @@ ui <- dashboardPage(
           collapsible = TRUE, width="100%", solidHeader = TRUE,
           column(9, plotlyOutput("plotstation", height = 500,width = '100%')),
           column(3,
-                 selectInput("tscale", textOutput("timescale.label"), choices= tscales,selected = tscales[1]),
-                 selectInput("aspect", textOutput("aspect.label"), choices= aspects,selected = aspects[1]),
-                 selectInput("highlightTS", textOutput("highlightTS.label"), choices= higlighting),
-                 selectInput("seasonTS", textOutput("seasonTS.label"), choices= seaTS)
+                 selectInput("tscale", textOutput("timescalelabel"), choices= tscales, selected='year'),
+                 selectInput("aspect", textOutput("aspectlabel"), choices= aspects,selected = aspects[1]),
+                 selectInput("highlightTS", textOutput("highlightTSlabel"), choices= higlighting),
+                 selectInput("seasonTS", textOutput("seasonTSlabel"), choices= seaTS)
           ))
     ),
   fluidPage(
@@ -48,9 +50,9 @@ ui <- dashboardPage(
         collapsible = TRUE, width="100%", solidHeader = TRUE,
         column(9, plotlyOutput("histstation", height = 500,width = '100%')),
         column(3,
-               selectInput("timespace", textOutput("timespace.label"), choices= timespace,selected = timespace[1]),
+               selectInput("timespace", textOutput("timespacelabel"), choices= timespace,selected = timespace[1]),
                dateRangeInput('dateRange',
-                              label = textOutput("timeperiod.label"),
+                              label = textOutput("timeperiodlabel"),
                               start = as.Date('1951-01-01'),
                               end = date(),startview = 'year')
         ))

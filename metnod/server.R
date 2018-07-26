@@ -19,6 +19,7 @@ server <- function(input, output, session) {
     event <- input$map_marker_click
     #print(paste('Updated ',input$location)); print(event$id)
     selected <- which(Y$station.id == event$id)
+    #if (input$exclude== 'Selected') filter[selected] <- FALSE
     updateSelectInput(session,inputId = 'location',label='Sted',choices=Y$location,
                       selected = Y$location[selected])  
   })
@@ -78,40 +79,43 @@ server <- function(input, output, session) {
   ## The map panel 
   output$map <- renderLeaflet({
     ## Get summary data from the netCDF file
-    print(input$ci)
+    #print(input$ci)
     Y <- retrieve.stationsummary(fnames[as.numeric(input$ci)])
     statistic <- vals()
     #print('Stastistic shown on map');print(summary(statistic))
     
-    if (tolower(input$higlight) == "top 10") highlight <- order(statistic,decreasing=TRUE)[1:10] else 
-    if (tolower(input$higlight) == "low 10") highlight <- order(statistic,decreasing=FALSE)[1:10] else 
+    filter[statistic < input$statisticrange[1]] <- FALSE
+    filter[statistic > input$statisticrange[2]] <- FALSE
+    
+    if (tolower(input$higlight) == "top 10") highlight <- order(statistic[filter],decreasing=TRUE)[1:10] else 
+    if (tolower(input$higlight) == "low 10") highlight <- order(statistic[filter],decreasing=FALSE)[1:10] else 
       highlight <- NULL
-    lon.highlight <- Y$longitude[highlight]
-    lat.highlight <- Y$latitude[highlight]
+    lon.highlight <- Y$longitude[filter][highlight]
+    lat.highlight <- Y$latitude[filter][highlight]
     #print('Highlight');print(statistic[highlight]); print(lon.highlight); print(lat.highlight)
     if (!is.null(Y$wetfreq)) reverse <- TRUE else reverse <- FALSE
-    print(paste('Reverse palette =',reverse)); print(summary(statistic))
+    #print(paste('Reverse palette =',reverse)); print(summary(statistic))
     pal <- colorBin(colscal(col = 't2m',n=100),
-                                 statistic,bins = 10,pretty = TRUE,reverse=reverse)    
+                                 statistic[filter],bins = 10,pretty = TRUE,reverse=reverse)    
     legendtitle <- input$statistic
     if (legendtitle=='Specific_day') legendtitle=input$it
     
     leaflet() %>% 
-      addCircleMarkers(lng = Y$longitude, # longitude
-                       lat = Y$latitude,fill = TRUE, # latitude
-                       label = as.character(round(statistic,digits = 2)),
+      addCircleMarkers(lng = Y$longitude[filter], # longitude
+                       lat = Y$latitude[filter],fill = TRUE, # latitude
+                       label = as.character(round(statistic[filter],digits = 2)),
                        labelOptions = labelOptions(direction = "right",textsize = "12px",opacity=0.6),
                        popup = Y$location,popupOptions(keepInView = TRUE),
                        radius =7,stroke=TRUE,weight = 1, color='black',
                        layerId = Y$station.id,
-                       fillOpacity = 0.4,fillColor=pal(statistic)) %>% 
+                       fillOpacity = 0.4,fillColor=pal(statistic[filter])) %>% 
       addCircleMarkers(lng = lon.highlight, lat = lat.highlight,fill=TRUE,
                        label=as.character(1:10),
                        labelOptions = labelOptions(direction = "right",textsize = "12px",opacity=0.6),
                        radius=8,stroke=TRUE, weight=5, color='black',
                        layerId = Y$station.id[highlight],
                        fillOpacity = 0.6,fillColor=rep("black",10)) %>%
-      addLegend("bottomleft", pal=pal, values=round(statistic, digits = 2), 
+      addLegend("bottomleft", pal=pal, values=round(statistic[filter], digits = 2), 
                 title=legendtitle,
                 layerId="colorLegend",labFormat = labelFormat(big.mark = "")) %>%
       addProviderTiles(providers$Esri.WorldStreetMap,
@@ -150,7 +154,7 @@ server <- function(input, output, session) {
   observeEvent(input$lingo, {
     #tscales <- c("day","month","season","year")
     names(tscales) <- timescales[as.numeric(input$lingo),]
-    updateSelectInput(session=session,inputId="tscale",choices=tscales,selected=tscales[1])
+    updateSelectInput(session=session,inputId="tscale",choices=tscales,selected=tscales[4])
   })
   
   observeEvent(input$lingo, {
@@ -158,6 +162,17 @@ server <- function(input, output, session) {
     names(varids) <- varnames[as.numeric(input$lingo),]
     #print(varids)
     updateSelectInput(session=session,inputId="ci",choices=varids)
+  })
+  
+  observeEvent(input$statistic, {
+    print('Update range')
+    statistic <- vals()
+    print('statistics retrieved')
+    statisticmin <- round(min(statistic,na.rm=TRUE))
+    statisticmax <- round(max(statistic,na.rm=TRUE))
+    print('max & min')
+    updateSliderInput(session=session,inputId="statisticrange",
+                      min=statisticmin,max=statisticmax,value = c(statisticmin,statisticmax))
   })
   
   observeEvent(input$ci, {
@@ -169,7 +184,7 @@ server <- function(input, output, session) {
       aspects  <- aspectsT
       names(aspects) <- aspectnameT[as.numeric(input$lingo),]
     }                
-    print(aspects)
+    #print(aspects)
     updateSelectInput(session=session,inputId="aspect",choices=aspects,selected=aspects[1])
   })
   
@@ -216,7 +231,7 @@ server <- function(input, output, session) {
     y <- retrieve.station(fnames[as.numeric(input$ci)],stid=selectedStid,verbose=verbose)
     if (is.precip(y)) thresholds <- seq(10,50,by=10) else thresholds <- seq(-30,30,by=5)
     
-    print(input$season); print(input$tscale); print(input$aspect)
+    #print(input$season); print(input$tscale); print(input$aspect)
     if (is.precip(y)) {
       if (input$aspect=='wetmean') FUN<-'wetmean' else
         if (input$aspect=='wetfreq') FUN<-'wetfreq' else
@@ -225,8 +240,9 @@ server <- function(input, output, session) {
     #if (is.null(FUN)) FUN='mean'
     
     ## Time series
-    print('Time series')
-    x0 <- as.numeric(input$x0)
+    #print('Time series')
+    x0 <- as.numeric(input$x0) 
+    y0 <- y # Original daily data
     if (FUN != 'count') 
       y <- switch(input$tscale,
                   'day'=y,'month'=as.monthly(y,FUN=FUN),
@@ -251,7 +267,7 @@ server <- function(input, output, session) {
     #print(highlight10)
     
     #print('Extract data for histogram')
-    if (input$timespace == timespace[1]) yH <- y else yH <- statistic
+    if (input$timespace == timespace[2]) yH <- y else yH <- statistic
     
     #print('Add marker for selected location')
     leafletProxy("map",data = y) %>% clearPopups() %>% 
@@ -287,25 +303,44 @@ server <- function(input, output, session) {
                    }
                    })
       mx <- ceiling(1.1*max(abs(y),na.rm=TRUE))
-      if (is.precip(yH)) {
-        bin_size <- 1
-        breaks = seq(1,mx,by=bin_size)
-        cY <- coredata(yH); cY[cY<1] <- NA
-        h <- hist(cY,breaks=breaks)
-        pdf <- wetfreq(yH)*exp(-h$mids/wetmean(yH))
-      } else if (is.T(yH)) {
-        bin_size=0.25
-        breaks = seq(floor(min(yH)),ceiling(max(yH)),by=bin_size)
-        h <- hist(coredata(yH),breaks=breaks)
-        pdf <- dnorm(h$mids,mean=mean(yH,na.rm=TRUE),sd=sd(yH,na.rm=TRUE))
+      if (input$timespace != 'Annual cycle') {
+        if (is.precip(yH)) {
+          bin_size <- 1
+          breaks = seq(1,mx,by=bin_size)
+          cY <- coredata(yH); cY[cY<1] <- NA
+          h <- hist(cY,breaks=breaks)
+          pdf <- wetfreq(yH)*exp(-h$mids/wetmean(yH))
+        } else if (is.T(yH)) {
+          bin_size=0.25
+          breaks = seq(floor(min(yH)),ceiling(max(yH)),by=bin_size)
+          h <- hist(coredata(yH),breaks=breaks)
+          pdf <- dnorm(h$mids,mean=mean(yH,na.rm=TRUE),sd=sd(yH,na.rm=TRUE))
+        } else {
+          h <- hist(coredata(yH),plot=FALSE)
+          pdf <- dnorm(h$mids,mean=mean(yH,na.rm=TRUE),sd=sd(yH,na.rm=TRUE))
+        }
+        
+        dist <- data.frame(y=h$density,x=h$mids,pdf=pdf)
+        H <- plot_ly(dist,x=~x,y=~y,name='data',type='bar')
+        H = H %>% add_trace(x=dist$x,y=dist$pdf,name='pdf',mode='lines') %>% layout(title=loc(y))
       } else {
-        h <- hist(coredata(yH),plot=FALSE)
-        pdf <- dnorm(h$mids,mean=mean(yH,na.rm=TRUE),sd=sd(yH,na.rm=TRUE))
+        y <- subset(y0,it=input$dateRange)
+        dim(y) <- NULL
+        if (is.precip(y)) {
+          FUN <- 'sum'
+          ylab='mm/month'
+        } else {
+          FUN <- 'mean'
+          ylab <- 'deg C'
+        }
+        mac <- data.frame(y=as.monthly(y,FUN=FUN))
+        mac$Month <- month(as.monthly(y))
+        #print(summary(mac)); print(input$dateRange)
+        AC <- plot_ly(mac,x=~Month,y=~y,name='mean_annual_cycle',type='box')  %>% 
+          layout(title=loc(y),yaxis=list(ylab))
+       
       }
       
-      dist <- data.frame(y=h$density,x=h$mids,pdf=pdf)
-      H <- plot_ly(dist,x=~x,y=~y,name='data',type='scatter')
-      H = H %>% add_trace(x=dist$x,y=dist$pdf,name='pdf',mode='lines') %>% layout(title=loc(y))
     })
     
     output$maintitle <- renderText({
@@ -318,30 +353,32 @@ server <- function(input, output, session) {
       htitle[as.numeric(input$lingo)]})
     output$cftitle <- renderText({
       cftitle[as.numeric(input$lingo)]})
-    output$timespace.label <- renderText({
+    output$timespacelabel <- renderText({
       lab.timespace[as.numeric(input$lingo)]})
-    output$timeperiod.label <- renderText({
+    output$timeperiodlabel <- renderText({
       lab.timeperiod[as.numeric(input$lingo)]})
-    output$timescale.label <- renderText({
+    output$timescalelabel <- renderText({
       lab.timescale[as.numeric(input$lingo)]})
-    output$season.label <- renderText({
+    output$seasonlabel <- renderText({
       lab.season[as.numeric(input$lingo)]})
-    output$aspect.label <- renderText({
+    output$aspectlabel <- renderText({
       lab.aspect[as.numeric(input$lingo)]})
-    output$location.label <- renderText({
+    output$locationlabel <- renderText({
       lab.location[as.numeric(input$lingo)]})
-    output$statistics.label <- renderText({
+    output$statisticslabel <- renderText({
       lab.statitics[as.numeric(input$lingo)]})
     output$threshold <- renderText({
       lab.threshold[as.numeric(input$lingo)]})
     output$specificdate <- renderText({
       lab.date[as.numeric(input$lingo)]})
-    output$highlight.label <- renderText({
+    output$highlightlabel <- renderText({
       lab.highlight[as.numeric(input$lingo)]})
-    output$highlightTS.label <- renderText({
+    output$highlightTSlabel <- renderText({
       lab.highlight[as.numeric(input$lingo)]})
     output$daylabel <- renderText({
       lab.speficicday[as.numeric(input$lingo)]})
+    output$excludelabel <- renderText({
+      lab.exclude[as.numeric(input$lingo)]})
     thresh <- reactive({
       return(as.numeric(input$thresh))
     })

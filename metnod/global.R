@@ -21,26 +21,26 @@ library(plotly)
 type2name <-function(stattype,lingo) {
   type <- c("altitude","first.year","lastrains","last.year","latitude","longitude","max",           
             "mean","min","number.valid","records","trend","trend_wetfreq","trend_wetmean", 
-            "wetfreq","wetmean","Number_of_days","Specific_day","sd")
+            "wetfreq","wetmean","Number_of_days","Specific_day","sd","lows")
   names <- rbind(
     c("Høyde over havet","Start år","Dager uten nedbør","Siste år","Breddegrad","Lengdegrad","Maksimumsverdi",           
-      "Gjennomsnitt","Minimumsverdi","Dager med data","Rekordstatistikk",
+      "Gjennomsnitt","Minimumsverdi","Dager med data","Rekorder: registrert/(antall uten klimaendring)",
       "Trend (per tiår)","Trend: dager med nedbør (%)","Trend: nedbørsintensitet", 
       "Dager med nedbør (%)","Typisk nedbørsintensitet (mm/dag)",
-      "Antall dager over terskelverdi","Utvalgt dato","Standardavvik"),
+      "Antall dager over terskelverdi","Utvalgt dato","Standardavvik","Lave rekorder: registrert/(antall uten klimaendring)"),
     c("Høyde over havet","Start år","Dager uten nedbør","Siste år","Breddegrad","Lengdegrad","Maksimumsverdi",           
-      "Gjennomsnitt","Minimumsverdi","Dager med data","Rekordstatistikk",
+      "Gjennomsnitt","Minimumsverdi","Dager med data","Rekorder: registrert/(antall uten klimaendring)",
       "Trend","Trend: dager med nedbør (%)","Trend: nedbørsintensitet", 
       "Dager med nedbør (%)","Typisk nedbørsintensitet (mm/dag)",
-      "Antall dager over terskelverdi","Utvalgt dato","Standardavvik"),
+      "Antall dager over terskelverdi","Utvalgt dato","Standardavvik","Lave rekorder: registrert/(antall uten klimaendring)"),
     c("Altitude","Start year","Days without precipitation","End year","Latitude","Longitude","Maximum",           
-      "Average","Minimum","Number of measurements","Record statistics",
+      "Average","Minimum","Number of measurements","Records: counted/(expected in stable climate)",
       "Trend (per decade)","Trend in wet days","Trend in rain intensity", 
       "Number of wet days (%)","Mean rain intensity (mm/day)","Number of days above threshold",
-      "Specific date","Standard deviation")
+      "Specific date","Standard deviation","Low records: counted/(expected in stable climate)")
   )
   matchingname <- names[as.numeric(lingo),]
-  descr <- matchingname[match(stattype,type)]
+  descr <- matchingname[match(tolower(stattype),tolower(type))]
   return(descr)
 }
 
@@ -81,7 +81,7 @@ sea <- c('All year'='all','Dec-Feb'='DJF',
 seaTS <- c('All year'='all','Dec-Feb'='DJF',
            'Mar-May'='MAM','Jun-Aug'='JJA','Sep-Nov'='SON',month.abb)
 thresholds <- seq(10,50,by=10)
-timespace <- c('Timeseries selected in the box above','Statistics in the map')
+timespace <- c('Annual cycle','Timeseries selected in the box above','Statistics in the map')
 
 languages <- 1:3; language.names <- c('Bokmål','Nynorsk','English')
 maintitle <- c('Meteorologisk institutt klimadata','','MET Norway Climate records')
@@ -100,6 +100,7 @@ lab.location <- c("Sted","Stad","Location")
 lab.statitics <- c("Statistikk vist på kartet","Statistikk vist på kartet","Statistics shown in map")
 lab.date <- c("Utvalgt dato","Utvald dato","A specific day")
 lab.highlight <- c('Uthev','Uthev','Highlight')
+lab.exclude <- c('Ekcluder','Eksluder','Exclude')
 aspectsP <- c("sum","wetfreq","wetmean","Number_of_days")
 aspectnameP <- rbind(c("Nedbørsmengde","Nedbørsfrekvens","Nedbørsintensitet","Antall dager med mye nedbør"),
                      c("Nedbørsmengde","Nedbørsfrekvens","Nedbørsintensitet","Antall dager med mye nedbør"),
@@ -141,8 +142,11 @@ print(stattype); print(varids)
 
 ## Get the names of locations, etc.
 Y <- retrieve.stationsummary(fnames[1])
-
 y <- retrieve.station(fnames[1],stid=Y$station.id[Y$location=="Oslo - blind"],verbose=verbose)
+statisticmin <- round(min(Y$mean,na.rm=TRUE))
+statisticmax <- round(max(Y$mean,na.rm=TRUE))
+
+filter <- rep(TRUE,length(Y$station.id))
 
 print('---')
 
