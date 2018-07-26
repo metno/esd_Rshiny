@@ -320,12 +320,12 @@ server <- function(input, output, session) {
           bin_size <- 1
           breaks = seq(1,mx,by=bin_size)
           cY <- coredata(yH); cY[cY<1] <- NA
-          h <- hist(cY,breaks=breaks)
+          h <- hist(cY,breaks=breaks,plot=FALSE)
           pdf <- wetfreq(yH)*exp(-h$mids/wetmean(yH))
         } else if (is.T(yH)) {
           bin_size=0.25
           breaks = seq(floor(min(yH)),ceiling(max(yH)),by=bin_size)
-          h <- hist(coredata(yH),breaks=breaks)
+          h <- hist(coredata(yH),breaks=breaks,plot=FALSE)
           pdf <- dnorm(h$mids,mean=mean(yH,na.rm=TRUE),sd=sd(yH,na.rm=TRUE))
         } else {
           h <- hist(coredata(yH),plot=FALSE)
