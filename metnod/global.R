@@ -66,7 +66,9 @@ vari2name <- function(x,vars=c('pre','t2m','tmax','tmin'),
   y <- x
   if (length(vars) != length(names)) stop("vars have different length to names in 'variname'")
   for (i in 1:length(x)) {
-    ii <- grep(tolower(substr(x[i],1,nc)),substr(vars,1,nc))
+    pattern <- tolower(substr(x[i],1,nc))
+    print(pattern)
+    ii <- grep(pattern = pattern,substr(vars,1,nc))
     if (length(ii)>0) y[i] <- names[ii]
   }
   return(y)
