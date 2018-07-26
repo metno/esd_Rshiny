@@ -84,6 +84,7 @@ server <- function(input, output, session) {
     statistic <- vals()
     #print('Stastistic shown on map');print(summary(statistic))
     
+    filter <- rep(TRUE,length(statistic))
     filter[statistic < input$statisticrange[1]] <- FALSE
     filter[statistic > input$statisticrange[2]] <- FALSE
     
@@ -105,15 +106,15 @@ server <- function(input, output, session) {
                        lat = Y$latitude[filter],fill = TRUE, # latitude
                        label = as.character(round(statistic[filter],digits = 2)),
                        labelOptions = labelOptions(direction = "right",textsize = "12px",opacity=0.6),
-                       popup = Y$location,popupOptions(keepInView = TRUE),
+                       popup = Y$location[filter],popupOptions(keepInView = TRUE),
                        radius =7,stroke=TRUE,weight = 1, color='black',
-                       layerId = Y$station.id,
+                       layerId = Y$station.id[filter],
                        fillOpacity = 0.4,fillColor=pal(statistic[filter])) %>% 
       addCircleMarkers(lng = lon.highlight, lat = lat.highlight,fill=TRUE,
                        label=as.character(1:10),
                        labelOptions = labelOptions(direction = "right",textsize = "12px",opacity=0.6),
                        radius=8,stroke=TRUE, weight=5, color='black',
-                       layerId = Y$station.id[highlight],
+                       layerId = Y$station.id[filter][highlight],
                        fillOpacity = 0.6,fillColor=rep("black",10)) %>%
       addLegend("bottomleft", pal=pal, values=round(statistic[filter], digits = 2), 
                 title=legendtitle,
@@ -165,6 +166,17 @@ server <- function(input, output, session) {
   })
   
   observeEvent(input$statistic, {
+    print('Update range')
+    statistic <- vals()
+    print('statistics retrieved')
+    statisticmin <- round(min(statistic,na.rm=TRUE))
+    statisticmax <- round(max(statistic,na.rm=TRUE))
+    print('max & min')
+    updateSliderInput(session=session,inputId="statisticrange",
+                      min=statisticmin,max=statisticmax,value = c(statisticmin,statisticmax))
+  })
+  
+  observeEvent(input$ci, {
     print('Update range')
     statistic <- vals()
     print('statistics retrieved')
