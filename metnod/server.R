@@ -317,11 +317,12 @@ server <- function(input, output, session) {
       mx <- ceiling(1.1*max(abs(y),na.rm=TRUE))
       if (input$timespace != 'Annual cycle') {
         if (is.precip(yH)) {
-          bin_size <- 1
+          if (input$tscale=='day') bin_size <- 1 else bin_size <- round(mx/25)
           breaks = seq(1,mx,by=bin_size)
           cY <- coredata(yH); cY[cY<1] <- NA
           h <- hist(cY,breaks=breaks,plot=FALSE)
-          pdf <- wetfreq(yH)*exp(-h$mids/wetmean(yH))
+          if (input$tscale=='day') pdf <- wetfreq(yH)*exp(-h$mids/wetmean(yH)) else
+                                   pdf <- dnorm(h$mids,mean=mean(yH,na.rm=TRUE),sd=sd(yH,na.rm=TRUE))
         } else if (is.T(yH)) {
           bin_size=0.25
           breaks = seq(floor(min(yH)),ceiling(max(yH)),by=bin_size)
@@ -333,8 +334,13 @@ server <- function(input, output, session) {
         }
         
         dist <- data.frame(y=h$density,x=h$mids,pdf=pdf)
+        syH <- summary(yH)[c(1,4,6)]
+        if (input$timespace=='Statistics in the map') 
+          title <- paste(input$statistic,': ',paste(names(syH),round(syH,2),collapse=', ',sep='='),sep='') else
+          title <- loc(y)
+        print(title)
         H <- plot_ly(dist,x=~x,y=~y,name='data',type='bar')
-        H = H %>% add_trace(x=dist$x,y=dist$pdf,name='pdf',mode='lines') %>% layout(title=loc(y))
+        H = H %>% add_trace(x=dist$x,y=dist$pdf,name='pdf',mode='lines') %>% layout(title=title)
       } else {
         y <- subset(y0,it=input$dateRange)
         dim(y) <- NULL
@@ -345,11 +351,12 @@ server <- function(input, output, session) {
           FUN <- 'mean'
           ylab <- 'deg C'
         }
+        title <- loc(y)
         mac <- data.frame(y=as.monthly(y,FUN=FUN))
         mac$Month <- month(as.monthly(y))
-        #print(summary(mac)); print(input$dateRange)
+        print(summary(mac)); print(input$dateRange); print(title)
         AC <- plot_ly(mac,x=~Month,y=~y,name='mean_annual_cycle',type='box')  %>% 
-          layout(title=loc(y),yaxis=list(ylab))
+          layout(title=title,yaxis=list(ylab))
        
       }
       

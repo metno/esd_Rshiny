@@ -120,7 +120,7 @@ timescales <- rbind(c('Dag','Måned','Sesong','År'),
 lab.speficicday <- c('Utvalgt dag','Utvald dag','Specific day')
 aspects <- aspectsP
 tscales <- c("day","month","season","year"); names(tscales) <- tscales
-higlighting <- c('None','Top 10','Low 10')
+higlighting <- c('None','New records','Top 10','Low 10')
 lingo <- 1
 first.location <- 'Oslo - blind'
 
