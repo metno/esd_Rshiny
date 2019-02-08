@@ -1,9 +1,4 @@
-# esd-ex2-app map of cyclone trajectories
-
-library(shiny)
-library(esd)
 source("helpers.R")
-load("data/trajectories.atlantic.rda") 
 
 shinyServer(function(input, output) {
   

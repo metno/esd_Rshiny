@@ -1,3 +1,6 @@
+library(shiny)
+library(esd)
+load("data/trajectories.atlantic.rda") 
 
 map.fancy <- function(Y,param=NULL,xlim=c(-80,40),ylim=c(30,90)) {
   data(etopo5)
@@ -60,7 +63,7 @@ select.unit <- function(param) {
 select.cb <- function(param) {
   if(is.character(param)) {
     if(param=="nao") {
-      breaks=seq(-2,2,0.5)
+      breaks <- seq(-3.25,3.25,0.25)#seq(-2,2,0.5)
       col <- colscal(n=length(breaks)+4,col="t2m",rev=FALSE)
       col <- col[3:(length(col)-3)]
       colbar <- list(col=col,n=length(breaks),breaks=breaks)
