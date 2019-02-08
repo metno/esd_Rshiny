@@ -1,3 +1,7 @@
+library(shiny)
+library(esd)
+load("data/trajectories.hurdat2.rda")
+
 prep.data <- function(fname="trajectories.hurdat2.rda",path=NULL,force=FALSE,verbose=TRUE) {
   if(verbose) print("prep.data")
   if(!is.null(path)) fname <- file.path(path,fname)
@@ -75,7 +79,7 @@ select.unit <- function(param) {
 select.cb <- function(param) {
   if(is.character(param)) {
     if(param=="nao") {
-      breaks=seq(-2,2,0.5)
+      breaks <- seq(-3.25,3.25,0.25) #seq(-2,2,0.5)
       col <- colscal(n=length(breaks)+4,col="t2m",rev=FALSE)
       col <- col[3:(length(col)-3)]
       colbar <- list(col=col,n=length(breaks),breaks=breaks)

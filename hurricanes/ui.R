@@ -1,10 +1,3 @@
-# esd-ex2-app map of cyclone trajectories
-
-library(shiny)
-#library(esd)
-#source("helpers.R")
-#load("data/trajectories.hurdat2.rda") 
-
 fluidPage(
   headerPanel('Cyclone trajectories'),
   sidebarPanel(
